@@ -2,8 +2,8 @@
 const api = require('./api');
 
 async function claimCreationSample(){
-    const privKey = api.createCrypto();
-    const profile = await api.createProfile(privKey);
+    const {private, public} = api.createCrypto();
+    const profile = await api.createProfile(private);
     console.log(profile);
     const issuerProfile = await api.createProfileForMSP("issuer1");
     console.log(issuerProfile);
@@ -17,10 +17,22 @@ async function claimCreationSample(){
       console.log(claim);
 }
 
+async function issueTokenSample(){
+  const {private, public} = api.createCrypto();
+  console.log(public.toString('hex'));
+  console.log(public.toString('hex').length);
+  await api.issueToken('blabla', public, 100);
+  await api.issueToken('blabla', public, 50);
+  setTimeout(async ()=>{
+    await api.listToken('blabla', public);
+  }, 5*1000);
+}
+
 
 (async function() {
 
     await claimCreationSample();
+    //await issueTokenSample();
     //const privKey = createCrypto();
     //const profile = await createProfile(privKey);
     //await readProfile(profile.id);

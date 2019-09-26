@@ -20,30 +20,44 @@ var requestp = require('request-promise-native');
 
 
 function createCrypto(){
-// generate privKey
-let privKey;
-do {
-  privKey = randomBytes(32);
-} while (!secp256k1.privateKeyVerify(privKey))
+    // generate privKey
+    let privKey;
+    do {
+    privKey = randomBytes(32);
+    } while (!secp256k1.privateKeyVerify(privKey))
 
-// get the public key in a compressed format
-const pubKey = secp256k1.publicKeyCreate(privKey);
- return privKey;
+    // get the public key in a compressed format
+    const pubKey = secp256k1.publicKeyCreate(privKey, true);
+    return {private: privKey, public: pubKey};
 }
 
 async function createProfile(privKey){
-    const payload = {};
-
-    var msg = crypto.createHash("sha256").update(JSON.stringify(payload)).digest();
+    /*var sh3 = crypto.createHash("sha3-256");
+    sh3.update('');
+    const msg = sh3.digest();
     
     // sign the message
     const sigObj = secp256k1.sign(msg, privKey);
-    
-    console.log(sigObj.signature.toString('hex'));
-    
+    const sigObjR = Buffer.concat([sigObj.signature, Buffer.from(new Uint8Array([sigObj.recovery]))]);
+
+    console.log(sigObjR);
+    console.log(sigObjR.length);
+    console.log(sigObjR.toString('hex').length)
+     
     const response = await axios.post('http://localhost:3000/api/profiles', {
+        "sig": sigObjR.toString('hex')*/
+     const payload = {};
+
+     var msg = crypto.createHash("sha256").update(JSON.stringify(payload)).digest();
+    
+      // sign the message
+     const sigObj = secp256k1.sign(msg, privKey);
+    
+     console.log(sigObj.signature.toString('hex'));
+    
+     const response = await axios.post('http://localhost:3000/api/profiles', {
         "payload": payload,
-        "sig": sigObj.signature.toString('hex')
+        "sig": sigObj.signature.toString('hex')    
       }).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
@@ -151,6 +165,44 @@ async function createClaim(type, issuerId, issuanceDate, expirationDate, subject
     return response.data;
 }
 
+async function issueToken(tokenId, recipientPublicKey, quantity){
+    const response = await axios.post(`http://localhost:3000/api/tokens/${tokenId}`, {
+        "recipientPublicKey": recipientPublicKey.toString('hex'),
+        "quantity": quantity
+      }).catch(function (error) {
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          } else if (error.request) {
+            console.log(error.request);
+          } else {
+            console.log('Error', error.message);
+          }
+      });  
+    console.log("STATUS="+response.status);
+    console.log("data="+JSON.stringify(response.data));
+    return response.data;
+}
+
+async function listToken(tokenId, recipientPublicKey){
+    const response = await axios.get(`http://localhost:3000/api/tokens/${recipientPublicKey.toString('hex')}/${tokenId}`).catch(function (error) {
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          } else if (error.request) {
+            console.log(error.request);
+          } else {
+            console.log('Error', error.message);
+          }
+      });  
+    console.log("STATUS="+response.status);
+    console.log("data="+JSON.stringify(response.data));
+    return response.data;
+}
+
+
 
 module.exports = {
     createCrypto: createCrypto,
@@ -160,5 +212,7 @@ module.exports = {
     putDocument: putDocument,
     listDocuments: listDocuments,
     downloadDocument: downloadDocument,
-    createClaim: createClaim
+    createClaim: createClaim,
+    issueToken: issueToken,
+    listToken: listToken
 }
