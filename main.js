@@ -24,15 +24,16 @@ async function issueTokenSample(){
   await api.issueToken('blabla', public, 100);
   await api.issueToken('blabla', public, 50);
   setTimeout(async ()=>{
-    await api.listToken('blabla', public);
+    await api.balanceToken('blabla', public);
+    await api.listTokens(public);
   }, 5*1000);
 }
 
 
 (async function() {
 
-    await claimCreationSample();
-    //await issueTokenSample();
+    //await claimCreationSample();
+    await issueTokenSample();
     //const privKey = createCrypto();
     //const profile = await createProfile(privKey);
     //await readProfile(profile.id);

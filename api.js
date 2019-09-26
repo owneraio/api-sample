@@ -185,8 +185,25 @@ async function issueToken(tokenId, recipientPublicKey, quantity){
     return response.data;
 }
 
-async function listToken(tokenId, recipientPublicKey){
+async function balanceToken(tokenId, recipientPublicKey){
     const response = await axios.get(`http://localhost:3000/api/tokens/${recipientPublicKey.toString('hex')}/${tokenId}`).catch(function (error) {
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          } else if (error.request) {
+            console.log(error.request);
+          } else {
+            console.log('Error', error.message);
+          }
+      });  
+    console.log("STATUS="+response.status);
+    console.log("data="+JSON.stringify(response.data));
+    return response.data;
+}
+
+async function listTokens(recipientPublicKey){
+    const response = await axios.get(`http://localhost:3000/api/tokens/${recipientPublicKey.toString('hex')}`).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -204,6 +221,7 @@ async function listToken(tokenId, recipientPublicKey){
 
 
 
+
 module.exports = {
     createCrypto: createCrypto,
     createProfile: createProfile,
@@ -214,5 +232,6 @@ module.exports = {
     downloadDocument: downloadDocument,
     createClaim: createClaim,
     issueToken: issueToken,
-    listToken: listToken
+    balanceToken: balanceToken,
+    listTokens: listTokens
 }
