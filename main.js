@@ -15,30 +15,44 @@ async function claimCreationSample(){
       profile.id,
       { blabla: 1});
       console.log(claim);
+    return claim;
 }
 
 async function issueTokenSample(){
-  const {private, public} = api.createCrypto();
-  console.log(public.toString('hex'));
-  console.log(public.toString('hex').length);
-  await api.issueToken('blabla', public, 100);
-  await api.issueToken('blabla', public, 50);
+  const crypto1 = api.createCrypto();
+  const crypto2 = api.createCrypto();
+  await api.issueToken('blabla', crypto1.public, 100);
+  await api.issueToken('blabla', crypto1.public, 50);
   setTimeout(async ()=>{
-    await api.balanceToken('blabla', public);
-    await api.listTokens(public);
+    await api.balanceToken('blabla', crypto1.public);
+    await api.balanceToken('blabla', crypto2.public);
+
+    await api.transferTokens('blabla', crypto1.private, crypto1.public, crypto2.public, 50);
+
+    setTimeout(async ()=>{
+      await api.balanceToken('blabla', crypto1.public);
+      await api.balanceToken('blabla', crypto2.public);
+    }, 5*1000);
   }, 5*1000);
+
+
 }
 
 
 (async function() {
 
-    //await claimCreationSample();
+    //const claim = await claimCreationSample();
+    //await api.readProfile('123');
+
     await issueTokenSample();
     //const privKey = createCrypto();
     //const profile = await createProfile(privKey);
     //await readProfile(profile.id);
-    //await putDocument('claim123', '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
-    //const documents = await listDocuments('claim123');
+    /*setTimeout(async ()=>{
+      await api.readClaim(claim.id);
+      await api.putDocument(claim.id, '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
+      const documents = await api.listDocuments(claim.id);  
+    }, 5000);*/
     //const file = documents[0];
     //console.log(file);
     //await downloadDocument('claim123', file.id, file.name)

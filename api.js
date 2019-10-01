@@ -1,29 +1,16 @@
 
 
-const { randomBytes } = require('crypto');
 const secp256k1 = require('secp256k1');
 const axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs');
-var FormData = require('form-data');
-var request = require('request');
 var requestp = require('request-promise-native');
-
-/*
-
-
-		const trans_bytes = Buffer.concat([commandHeader.nonce.toBuffer(), commandHeader.creator.toBuffer()]);
-		const trans_hash = HashPrimitives.SHA2_256(trans_bytes);
-		const txId = Buffer.from(trans_hash).toString();
-
-*/
-
 
 function createCrypto(){
     // generate privKey
     let privKey;
     do {
-    privKey = randomBytes(32);
+    privKey = crypto.randomBytes(32);
     } while (!secp256k1.privateKeyVerify(privKey))
 
     // get the public key in a compressed format
@@ -55,9 +42,9 @@ async function createProfile(privKey){
     
      console.log(sigObj.signature.toString('hex'));
     
-     const response = await axios.post('http://localhost:3000/api/profiles', {
+     const response = await axios.post('http://localhost:3000/api/profiles/owner', {
         "payload": payload,
-        "sig": sigObj.signature.toString('hex')    
+        "signature": sigObj.signature.toString('hex')    
       }).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
@@ -120,8 +107,6 @@ async function putDocument(claimId, file){
         console.log(response.message);
         return response;
     });
-    //console.log("statusCode="+response.statusCode); 
-    //console.log("data="+JSON.stringify(response.data));  
 }
 
 async function listDocuments(claimId){
@@ -136,8 +121,6 @@ async function downloadDocument(claimId, fileId, name){
         responseType: 'arraybuffer'
     });
     fs.writeFileSync(`/tmp/${name}`, response.data);
-
-    //response.data.pipe(fs.createWriteStream("/tmp/my.pdf"));
 }
 
 async function createClaim(type, issuerId, issuanceDate, expirationDate, subjectId, data){
@@ -164,6 +147,22 @@ async function createClaim(type, issuerId, issuanceDate, expirationDate, subject
     console.log("data="+JSON.stringify(response.data));
     return response.data;
 }
+
+async function readClaim(id){
+    const response = await axios.get('http://localhost:3000/api/claims/'+id).catch(function (error) {
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          } else if (error.request) {
+            console.log(error.request);
+          } else {
+            console.log('Error', error.message);
+          }
+      });  
+    console.log("STATUS="+response.status);
+}
+
 
 async function issueToken(tokenId, recipientPublicKey, quantity){
     const response = await axios.post(`http://localhost:3000/api/tokens/${tokenId}`, {
@@ -219,6 +218,57 @@ async function listTokens(recipientPublicKey){
     return response.data;
 }
 
+async function transferTokens(tokenId, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity){
+    const nonce = crypto.randomBytes(24);
+    const signature = signMessage(sourcePrivateKey, [nonce, "transfer", recipientPublicKey, tokenId, '0x'+quantity.toString(16)]);
+    console.log(signature.length);
+    const response = await axios.put(`http://localhost:3000/api/tokens/${tokenId}/transfer`, {
+        "sourcePublicKey": sourcePublicKey.toString('hex'),
+        "recipientPublicKey": recipientPublicKey.toString('hex'),
+        "quantity": quantity,
+        "nonce": nonce.toString('hex'), 
+        "signature":signature,
+      }).catch(function (error) {
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          } else if (error.request) {
+            console.log(error.request);
+          } else {
+            console.log('Error', error.message);
+          }
+      });  
+    console.log("STATUS="+response.status);
+    console.log("data="+JSON.stringify(response.data));
+    return response.data;
+
+}
+
+function signMessage(privKey, values){
+    var sh3 = crypto.createHash("sha3-256");
+    console.log("sha3 start");
+    
+    values.forEach((v)=>{
+        console.log(Buffer.from(v));
+        console.log(v);
+        sh3.update(v);
+    });
+    console.log("sha3 end");
+
+    const msg = sh3.digest();
+    console.log(msg);
+    
+    // sign the message
+    const sigObj = secp256k1.sign(msg, privKey);
+    const sigObjR = Buffer.concat([sigObj.signature, Buffer.from(new Uint8Array([sigObj.recovery]))]);
+    console.log(sigObj.signature.length);
+    return sigObj.signature.toString('hex');
+    /*console.log(sigObjR);
+    console.log(sigObjR.length);
+    console.log(sigObjR.toString('hex').length)
+    return sigObjR.toString('hex');*/
+}
 
 
 
@@ -231,7 +281,9 @@ module.exports = {
     listDocuments: listDocuments,
     downloadDocument: downloadDocument,
     createClaim: createClaim,
+    readClaim: readClaim,
     issueToken: issueToken,
     balanceToken: balanceToken,
-    listTokens: listTokens
+    listTokens: listTokens,
+    transferTokens: transferTokens
 }
