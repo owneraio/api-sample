@@ -185,8 +185,8 @@ async function readClaim(id){
 }
 
 
-async function issueToken(tokenId, recipientPublicKey, quantity){
-    const response = await axios.post(`http://localhost:3000/api/tokens/${tokenId}`, {
+async function issueToken(assetId, recipientPublicKey, quantity){
+    const response = await axios.post(`http://localhost:3000/api/tokens/${assetId}`, {
         "recipientPublicKey": recipientPublicKey.toString('hex'),
         "quantity": quantity
       }).catch(function (error) {
@@ -205,8 +205,8 @@ async function issueToken(tokenId, recipientPublicKey, quantity){
     return response.data;
 }
 
-async function balanceToken(tokenId, recipientPublicKey){
-    const response = await axios.get(`http://localhost:3000/api/tokens/${recipientPublicKey.toString('hex')}/${tokenId}`).catch(function (error) {
+async function balanceToken(assetId, recipientPublicKey){
+    const response = await axios.get(`http://localhost:3000/api/tokens/${recipientPublicKey.toString('hex')}/${assetId}`).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -239,11 +239,11 @@ async function listTokens(recipientPublicKey){
     return response.data;
 }
 
-async function transferTokens(tokenId, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity){
+async function transferTokens(assetId, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity){
     const nonce = crypto.randomBytes(24);
-    const signature = signMessage(sourcePrivateKey, [nonce, "transfer", recipientPublicKey, tokenId, '0x'+quantity.toString(16)]);
+    const signature = signMessage(sourcePrivateKey, [nonce, "transfer", recipientPublicKey, assetId, '0x'+quantity.toString(16)]);
     console.log(signature.length);
-    const response = await axios.put(`http://localhost:3000/api/tokens/${tokenId}/transfer`, {
+    const response = await axios.put(`http://localhost:3000/api/tokens/${assetId}/transfer`, {
         "sourcePublicKey": sourcePublicKey.toString('hex'),
         "recipientPublicKey": recipientPublicKey.toString('hex'),
         "quantity": quantity,
