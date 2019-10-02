@@ -61,9 +61,9 @@ async function createProfile(privKey){
     return response.data;
 }
 
-async function createProfileForMSP(name){
-    const response = await axios.post('http://localhost:3000/api/profiles/issuer', {
-      "issuerName": name
+async function createProfileForProvider(name){
+    const response = await axios.post('http://localhost:3000/api/profiles/provider', {
+      "name": name
     }).catch(function (error) {
       if (error.response) {
           console.log(error.response.data);
@@ -79,6 +79,26 @@ async function createProfileForMSP(name){
     console.log("data="+JSON.stringify(response.data));
     return response.data;
 }
+
+async function createProfileForAsset(config){
+    const response = await axios.post('http://localhost:3000/api/profiles/asset', {
+      "config": config
+    }).catch(function (error) {
+      if (error.response) {
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        } else if (error.request) {
+          console.log(error.request);
+        } else {
+          console.log('Error', error.message);
+        }
+    });  
+    console.log("STATUS="+response.status);
+    console.log("data="+JSON.stringify(response.data));
+    return response.data;
+}
+
 
 
 async function readProfile(id){
@@ -107,6 +127,7 @@ async function putDocument(claimId, file){
         console.log(response.message);
         return response;
     });
+    console.log(response);
 }
 
 async function listDocuments(claimId){
@@ -247,14 +268,10 @@ async function transferTokens(tokenId, sourcePrivateKey, sourcePublicKey, recipi
 
 function signMessage(privKey, values){
     var sh3 = crypto.createHash("sha3-256");
-    console.log("sha3 start");
     
     values.forEach((v)=>{
-        console.log(Buffer.from(v));
-        console.log(v);
         sh3.update(v);
     });
-    console.log("sha3 end");
 
     const msg = sh3.digest();
     console.log(msg);
@@ -275,7 +292,8 @@ function signMessage(privKey, values){
 module.exports = {
     createCrypto: createCrypto,
     createProfile: createProfile,
-    createProfileForMSP: createProfileForMSP,
+    createProfileForProvider: createProfileForProvider,
+    createProfileForAsset: createProfileForAsset,
     readProfile: readProfile,
     putDocument: putDocument,
     listDocuments: listDocuments,
