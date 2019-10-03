@@ -3,7 +3,7 @@ const api = require('./api');
 
 async function claimCreationSample(){
     const {private, public} = api.createCrypto();
-    const profile = await api.createProfile(private);
+    const profile = await api.createOwnerProfile(private, public);
     console.log(profile);
     const issuerProfile = await api.createProfileForProvider("node1");
     console.log(issuerProfile);
@@ -46,12 +46,13 @@ async function issueTokenSample(){
 
   //  await issueTokenSample();
   //const {private, public} = api.createCrypto();
-  //const profile = await api.createProfile(private);
+  //const profile = await api.createOwnerProfile(private, public);
     //console.log(profile);
     //await readProfile(profile.id);
+    const {private, public} = api.createCrypto();
+    const profile = await api.createOwnerProfile(private, public);
 
-
-    await issueTokenSample();
+    //await issueTokenSample();
 
     /*const claim = await claimCreationSample();
 

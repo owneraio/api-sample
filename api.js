@@ -18,33 +18,12 @@ function createCrypto(){
     return {private: privKey, public: pubKey};
 }
 
-async function createProfile(privKey){
-    /*var sh3 = crypto.createHash("sha3-256");
-    sh3.update('');
-    const msg = sh3.digest();
-    
-    // sign the message
-    const sigObj = secp256k1.sign(msg, privKey);
-    const sigObjR = Buffer.concat([sigObj.signature, Buffer.from(new Uint8Array([sigObj.recovery]))]);
-
-    console.log(sigObjR);
-    console.log(sigObjR.length);
-    console.log(sigObjR.toString('hex').length)
-     
-    const response = await axios.post('http://localhost:3000/api/profiles', {
-        "sig": sigObjR.toString('hex')*/
-     const payload = {};
-
-     var msg = crypto.createHash("sha256").update(JSON.stringify(payload)).digest();
-    
-      // sign the message
-     const sigObj = secp256k1.sign(msg, privKey);
-    
-     console.log(sigObj.signature.toString('hex'));
-    
+async function createOwnerProfile(privKey, publicKey){
+     const signature = signMessage(privKey, ['createOwnerProfile', publicKey]);
+        
      const response = await axios.post('http://localhost:3000/api/profiles/owner', {
-        "payload": payload,
-        "signature": sigObj.signature.toString('hex')    
+        "publicKey": publicKey.toString('hex'),
+        "signature": signature    
       }).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
@@ -266,7 +245,7 @@ async function transferTokens(assetId, sourcePrivateKey, sourcePublicKey, recipi
 
 }
 
-function signMessage(privKey, values){
+function signMessage(privKey, values, recovery){
     var sh3 = crypto.createHash("sha3-256");
     
     values.forEach((v)=>{
@@ -274,24 +253,22 @@ function signMessage(privKey, values){
     });
 
     const msg = sh3.digest();
-    console.log(msg);
     
     // sign the message
     const sigObj = secp256k1.sign(msg, privKey);
-    const sigObjR = Buffer.concat([sigObj.signature, Buffer.from(new Uint8Array([sigObj.recovery]))]);
-    console.log(sigObj.signature.length);
-    return sigObj.signature.toString('hex');
-    /*console.log(sigObjR);
-    console.log(sigObjR.length);
-    console.log(sigObjR.toString('hex').length)
-    return sigObjR.toString('hex');*/
+    if(recovery){
+        const sigObjR = Buffer.concat([sigObj.signature, Buffer.from(new Uint8Array([sigObj.recovery]))]);
+        return sigObjR.toString('hex');
+    }else{
+        return sigObj.signature.toString('hex');
+    }
 }
 
 
 
 module.exports = {
     createCrypto: createCrypto,
-    createProfile: createProfile,
+    createOwnerProfile: createOwnerProfile,
     createProfileForProvider: createProfileForProvider,
     createProfileForAsset: createProfileForAsset,
     readProfile: readProfile,
