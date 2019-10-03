@@ -18,6 +18,14 @@ async function claimCreationSample(){
     return claim;
 }
 
+async function testAssetUpdate(){
+  const assetProfile = await api.createProfileForAsset({a: 5});
+  console.log(assetProfile);
+  await api.updateProfileForAsset(assetProfile.id, {a: 6});
+  const a = await api.readProfile(assetProfile.id);
+  console.log(a);
+}
+
 async function issueTokenSample(){
   const crypto1 = api.createCrypto();
   const crypto2 = api.createCrypto();
@@ -49,9 +57,10 @@ async function issueTokenSample(){
   //const profile = await api.createOwnerProfile(private, public);
     //console.log(profile);
     //await readProfile(profile.id);
-    const {private, public} = api.createCrypto();
-    const profile = await api.createOwnerProfile(private, public);
-
+    //const {private, public} = api.createCrypto();
+    //const profile = await api.createOwnerProfile(private, public);
+    //const claim = await claimCreationSample();
+    await testAssetUpdate();
     //await issueTokenSample();
 
     /*const claim = await claimCreationSample();

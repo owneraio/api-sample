@@ -78,10 +78,27 @@ async function createProfileForAsset(config){
     return response.data;
 }
 
-
+async function updateProfileForAsset(id, config){
+    const response = await axios.put(`http://localhost:3000/api/profiles/${id}/asset`, {
+      "config": config
+    }).catch(function (error) {
+      if (error.response) {
+          console.log(error.response.data);
+          console.log(error.response.status);
+          console.log(error.response.headers);
+        } else if (error.request) {
+          console.log(error.request);
+        } else {
+          console.log('Error', error.message);
+        }
+    });  
+    console.log("STATUS="+response.status);
+    console.log("data="+JSON.stringify(response.data));
+    return response.data;
+}
 
 async function readProfile(id){
-    const response = await axios.get('http://localhost:3000/api/profiles/'+id).catch(function (error) {
+    const response = await axios.get(`http://localhost:3000/api/profiles/${id}`).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -93,6 +110,7 @@ async function readProfile(id){
           }
       });  
     console.log("STATUS="+response.status);
+    return response.data;
 }
 
 async function putDocument(claimId, file){
@@ -271,6 +289,7 @@ module.exports = {
     createOwnerProfile: createOwnerProfile,
     createProfileForProvider: createProfileForProvider,
     createProfileForAsset: createProfileForAsset,
+    updateProfileForAsset: updateProfileForAsset,
     readProfile: readProfile,
     putDocument: putDocument,
     listDocuments: listDocuments,
