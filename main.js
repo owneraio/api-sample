@@ -74,19 +74,20 @@ async function issueTokenSample(){
     //const profile = await api.createOwnerProfile(private, public);
     //const claim = await claimCreationSample();
     //await testAssetUpdate();
-    await testClaimUpdate();
+    //await testClaimUpdate();
 
     //await issueTokenSample();
 
-    /*const claim = await claimCreationSample();
+    const claim = await claimCreationSample();
 
     setTimeout(async ()=>{
-      await api.putDocument(claim.id, '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
+      const doc = await api.uploadDocument(claim.id, '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
       const documents = await api.listDocuments(claim.id);  
+      const updateDoc = await api.updateDocument(doc.id, claim.id, '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
       setTimeout(async ()=>{
         const file = documents[0];
-        await api.downloadDocument('claim123', file.id, file.name);
+        await api.downloadDocument(claim.id, file.id, file.name);
       }, 3000);
-    }, 5000);*/
+    }, 5000);
   })();
 

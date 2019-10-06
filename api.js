@@ -113,11 +113,11 @@ async function readProfile(id){
     return response.data;
 }
 
-async function putDocument(claimId, file){
+async function uploadDocument(claimId, file){
     const formData = {
         file: fs.createReadStream(file),
     };
-    const response = await requestp.put({url:'http://localhost:3000/api/docs/'+claimId, formData: formData})
+    const response = await requestp.post({url:`http://localhost:3000/api/docs/${claimId}`, formData: formData})
     .catch(function (response) {
         //handle error
         console.log(response.statusCode);
@@ -125,7 +125,24 @@ async function putDocument(claimId, file){
         return response;
     });
     console.log(response);
+    return JSON.parse(response);
 }
+
+async function updateDocument(docId, claimId, file){
+    const formData = {
+        file: fs.createReadStream(file),
+    };
+    const response = await requestp.put({url:`http://localhost:3000/api/docs/${claimId}/${docId}`, formData: formData})
+    .catch(function (response) {
+        //handle error
+        console.log(response.statusCode);
+        console.log(response.message);
+        return response;
+    });
+    console.log(response);
+    return JSON.parse(response);
+}
+
 
 async function listDocuments(claimId){
     const response = await axios.get('http://localhost:3000/api/docs/'+claimId);
@@ -313,7 +330,8 @@ module.exports = {
     createProfileForAsset: createProfileForAsset,
     updateProfileForAsset: updateProfileForAsset,
     readProfile: readProfile,
-    putDocument: putDocument,
+    uploadDocument: uploadDocument,
+    updateDocument: updateDocument,
     listDocuments: listDocuments,
     downloadDocument: downloadDocument,
     createClaim: createClaim,
