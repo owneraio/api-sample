@@ -166,6 +166,28 @@ async function createClaim(type, issuerId, issuanceDate, expirationDate, subject
     return response.data;
 }
 
+async function updateClaim(id, issuanceDate, expirationDate, data){
+    const claim = {
+        issuanceDate: issuanceDate,
+        expirationDate: expirationDate,
+        data: data        
+    };
+    const response = await axios.put(`http://localhost:3000/api/claims/${id}`, claim).catch(function (error) {
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            console.log(error.response.headers);
+          } else if (error.request) {
+            console.log(error.request);
+          } else {
+            console.log('Error', error.message);
+          }
+      });  
+    console.log("STATUS="+response.status);
+    console.log("data="+JSON.stringify(response.data));
+    return response.data;
+}
+
 async function readClaim(id){
     const response = await axios.get('http://localhost:3000/api/claims/'+id).catch(function (error) {
         if (error.response) {
@@ -295,6 +317,7 @@ module.exports = {
     listDocuments: listDocuments,
     downloadDocument: downloadDocument,
     createClaim: createClaim,
+    updateClaim: updateClaim,
     readClaim: readClaim,
     issueToken: issueToken,
     balanceToken: balanceToken,
