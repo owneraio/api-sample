@@ -6,6 +6,9 @@ const crypto = require('crypto');
 const fs = require('fs');
 var requestp = require('request-promise-native');
 
+
+const SERVER_BASE_URI = 'http://localhost:3000';
+
 function createCrypto(){
     // generate privKey
     let privKey;
@@ -21,7 +24,7 @@ function createCrypto(){
 async function createOwnerProfile(privKey, publicKey){
      const signature = signMessage(privKey, ['createOwnerProfile', publicKey]);
         
-     const response = await axios.post('http://localhost:3000/api/profiles/owner', {
+     const response = await axios.post(`{SERVER_BASE_URI}/api/profiles/owner`, {
         "publicKey": publicKey.toString('hex'),
         "signature": signature    
       }).catch(function (error) {
@@ -41,7 +44,7 @@ async function createOwnerProfile(privKey, publicKey){
 }
 
 async function createProfileForProvider(name){
-    const response = await axios.post('http://localhost:3000/api/profiles/provider', {
+    const response = await axios.post(`${SERVER_BASE_URI}/api/profiles/provider`, {
       "name": name
     }).catch(function (error) {
       if (error.response) {
@@ -60,7 +63,7 @@ async function createProfileForProvider(name){
 }
 
 async function createProfileForAsset(config){
-    const response = await axios.post('http://localhost:3000/api/profiles/asset', {
+    const response = await axios.post(`${SERVER_BASE_URI}/api/profiles/asset`, {
       "config": config
     }).catch(function (error) {
       if (error.response) {
@@ -79,7 +82,7 @@ async function createProfileForAsset(config){
 }
 
 async function updateProfileForAsset(id, config){
-    const response = await axios.put(`http://localhost:3000/api/profiles/${id}/asset`, {
+    const response = await axios.put(`${SERVER_BASE_URI}/api/profiles/${id}/asset`, {
       "config": config
     }).catch(function (error) {
       if (error.response) {
@@ -98,7 +101,7 @@ async function updateProfileForAsset(id, config){
 }
 
 async function readProfile(id){
-    const response = await axios.get(`http://localhost:3000/api/profiles/${id}`).catch(function (error) {
+    const response = await axios.get(`${SERVER_BASE_URI}/api/profiles/${id}`).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -117,7 +120,7 @@ async function uploadDocument(claimId, file){
     const formData = {
         file: fs.createReadStream(file),
     };
-    const response = await requestp.post({url:`http://localhost:3000/api/docs/${claimId}`, formData: formData})
+    const response = await requestp.post({url:`${SERVER_BASE_URI}/api/docs/${claimId}`, formData: formData})
     .catch(function (response) {
         //handle error
         console.log(response.statusCode);
@@ -132,7 +135,7 @@ async function updateDocument(docId, claimId, file){
     const formData = {
         file: fs.createReadStream(file),
     };
-    const response = await requestp.put({url:`http://localhost:3000/api/docs/${claimId}/${docId}`, formData: formData})
+    const response = await requestp.put({url:`${SERVER_BASE_URI}/api/docs/${claimId}/${docId}`, formData: formData})
     .catch(function (response) {
         //handle error
         console.log(response.statusCode);
@@ -145,14 +148,14 @@ async function updateDocument(docId, claimId, file){
 
 
 async function listDocuments(claimId){
-    const response = await axios.get('http://localhost:3000/api/docs/'+claimId);
+    const response = await axios.get(`${SERVER_BASE_URI}/api/docs/${claimId}`);
     console.log("STATUS="+response.status); 
     console.log("data="+JSON.stringify(response.data));  
     return response.data;
 }
 
 async function downloadDocument(claimId, fileId, name){
-    const response = await axios.get(`http://localhost:3000/api/docs/${claimId}/${fileId}`, {
+    const response = await axios.get(`${SERVER_BASE_URI}/api/docs/${claimId}/${fileId}`, {
         responseType: 'arraybuffer'
     });
     fs.writeFileSync(`/tmp/${name}`, response.data);
@@ -167,7 +170,7 @@ async function createClaim(type, issuerId, issuanceDate, expirationDate, subject
         subjectId: subjectId,
         data: data        
     };
-    const response = await axios.post('http://localhost:3000/api/claims', claim).catch(function (error) {
+    const response = await axios.post(`${SERVER_BASE_URI}/api/claims`, claim).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -189,7 +192,7 @@ async function updateClaim(id, issuanceDate, expirationDate, data){
         expirationDate: expirationDate,
         data: data        
     };
-    const response = await axios.put(`http://localhost:3000/api/claims/${id}`, claim).catch(function (error) {
+    const response = await axios.put(`${SERVER_BASE_URI}/api/claims/${id}`, claim).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -206,7 +209,7 @@ async function updateClaim(id, issuanceDate, expirationDate, data){
 }
 
 async function readClaim(id){
-    const response = await axios.get('http://localhost:3000/api/claims/'+id).catch(function (error) {
+    const response = await axios.get(`${SERVER_BASE_URI}/api/claims/${id}`).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -222,7 +225,7 @@ async function readClaim(id){
 
 
 async function issueToken(assetId, recipientPublicKey, quantity){
-    const response = await axios.post(`http://localhost:3000/api/tokens/${assetId}`, {
+    const response = await axios.post(`${SERVER_BASE_URI}/api/tokens/${assetId}`, {
         "recipientPublicKey": recipientPublicKey.toString('hex'),
         "quantity": quantity
       }).catch(function (error) {
@@ -242,7 +245,7 @@ async function issueToken(assetId, recipientPublicKey, quantity){
 }
 
 async function balanceToken(assetId, recipientPublicKey){
-    const response = await axios.get(`http://localhost:3000/api/tokens/${recipientPublicKey.toString('hex')}/${assetId}`).catch(function (error) {
+    const response = await axios.get(`${SERVER_BASE_URI}/api/tokens/${recipientPublicKey.toString('hex')}/${assetId}`).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -259,7 +262,7 @@ async function balanceToken(assetId, recipientPublicKey){
 }
 
 async function listTokens(recipientPublicKey){
-    const response = await axios.get(`http://localhost:3000/api/tokens/${recipientPublicKey.toString('hex')}`).catch(function (error) {
+    const response = await axios.get(`${SERVER_BASE_URI}/api/tokens/${recipientPublicKey.toString('hex')}`).catch(function (error) {
         if (error.response) {
             console.log(error.response.data);
             console.log(error.response.status);
@@ -279,7 +282,7 @@ async function transferTokens(assetId, sourcePrivateKey, sourcePublicKey, recipi
     const nonce = crypto.randomBytes(24);
     const signature = signMessage(sourcePrivateKey, [nonce, "transfer", recipientPublicKey, assetId, '0x'+quantity.toString(16)]);
     console.log(signature.length);
-    const response = await axios.put(`http://localhost:3000/api/tokens/${assetId}/transfer`, {
+    const response = await axios.put(`${SERVER_BASE_URI}/api/tokens/${assetId}/transfer`, {
         "sourcePublicKey": sourcePublicKey.toString('hex'),
         "recipientPublicKey": recipientPublicKey.toString('hex'),
         "quantity": quantity,
