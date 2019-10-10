@@ -24,7 +24,7 @@ function createCrypto(){
 async function createOwnerProfile(privKey, publicKey){
      const signature = signMessage(privKey, ['createOwnerProfile', publicKey]);
         
-     const response = await axios.post(`{SERVER_BASE_URI}/api/profiles/owner`, {
+     const response = await axios.post(`${SERVER_BASE_URI}/api/profiles/owner`, {
         "publicKey": publicKey.toString('hex'),
         "signature": signature    
       }).catch(function (error) {
