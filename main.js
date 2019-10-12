@@ -41,8 +41,39 @@ async function testAssetUpdate(){
 
 async function issueTokenSample(){
   const crypto1 = api.createCrypto();
+  const owner1 = await api.createOwnerProfile(crypto1.private, crypto1.public);
   const crypto2 = api.createCrypto();
-  const assetProfile = await api.createProfileForAsset({a: 5});
+  const owner2 = await api.createOwnerProfile(crypto2.private, crypto2.public);
+
+  const kycProvider = await api.createProfileForProvider("KYCProvider");
+  const year_plus_1 = new Date(); year_plus_1.setFullYear(year_plus_1.getFullYear() + 1);
+
+  await api.createClaim("KYC-Location",
+    kycProvider.id, 
+    new Date().toISOString(), 
+    year_plus_1.toISOString(),
+    owner2.id,
+    { country: 'US'});
+
+  await api.createClaim("KYC-Investor",
+    kycProvider.id, 
+    new Date().toISOString(), 
+    year_plus_1.toISOString(),
+    owner2.id,
+    { accredited: true});
+
+  const assetProfile = await api.createProfileForAsset(
+    {
+      buyerInvestorTypeRules: [
+        [
+          {type: 'KYC-Location', key: 'country', value: 'US'},
+          {type: 'KYC-Investor', key: 'accredited', value: true}
+        ]
+      ],
+      buyerKYCProviders: [kycProvider.id]
+    },
+    ['KYCVerification'] // enabled regulation apps
+  );
   await api.issueToken(assetProfile.id, crypto1.public, 100);
   await api.issueToken(assetProfile.id, crypto1.public, 50);
   setTimeout(async ()=>{
@@ -76,7 +107,10 @@ async function issueTokenSample(){
     //await testAssetUpdate();
     //await testClaimUpdate();
 
-    //await issueTokenSample();
+    await issueTokenSample();
+   //  const claim = await claimCreationSample();
+
+    /*
 
     const claim = await claimCreationSample();
 
@@ -88,6 +122,6 @@ async function issueTokenSample(){
         const file = documents[0];
         await api.downloadDocument(claim.id, file.id, file.name);
       }, 3000);
-    }, 5000);
+    }, 5000);*/
   })();
 

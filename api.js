@@ -62,9 +62,10 @@ async function createProfileForProvider(name){
     return response.data;
 }
 
-async function createProfileForAsset(config){
+async function createProfileForAsset(config, regApps){
     const response = await axios.post(`${SERVER_BASE_URI}/api/profiles/asset`, {
-      "config": config
+      "config": config,
+      "regulationApps": regApps
     }).catch(function (error) {
       if (error.response) {
           console.log(error.response.data);
