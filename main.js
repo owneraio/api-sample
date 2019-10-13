@@ -87,15 +87,15 @@ async function issueTokenSample(){
 
   const assetProfile = await api.createProfileForAsset(
     {
-      buyerRules: [
+      recipientRules: [
         [
           {type: 'KYC-Location', key: 'country', value: 'US'},
           {type: 'KYC-Investor', key: 'accredited', value: true}
         ]
       ],
-      buyerKYCProviders: [kycProvider.id]
+      recipientClaimProviders: [kycProvider.id]
     },
-    ['KYCVerification'] // enabled regulation apps
+    ['RecipientClaimVerification'] // enabled regulation apps
   );
   await api.issueToken(assetProfile.id, crypto1.public, 100);
   await api.issueToken(assetProfile.id, crypto1.public, 50);
