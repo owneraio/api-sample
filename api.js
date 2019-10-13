@@ -7,7 +7,7 @@ const fs = require('fs');
 var requestp = require('request-promise-native');
 
 
-const SERVER_BASE_URI = 'http://localhost:3000';
+const SERVER_BASE_URI = 'https://api.ownera.io';
 
 function createCrypto(){
     // generate privKey

@@ -1,4 +1,3 @@
-
 const api = require('./api');
 
 async function claimCreationSample(){
@@ -113,38 +112,25 @@ async function issueTokenSample(){
   }, 5*1000);
 }
 
+async function documentSample(){
+  /*
+  const claim = await claimCreationSample();
+
+  setTimeout(async ()=>{
+    const doc = await api.uploadDocument(claim.id, '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
+    const documents = await api.listDocuments(claim.id);  
+    const updateDoc = await api.updateDocument(doc.id, claim.id, '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
+    setTimeout(async ()=>{
+      const file = documents[0];
+      await api.downloadDocument(claim.id, file.id, file.name);
+    }, 3000);
+  }, 5000);*/
+
+}
 
 (async function() {
 
-    //await api.readProfile('123');
-
-  //  await issueTokenSample();
-  //const {private, public} = api.createCrypto();
-  //const profile = await api.createOwnerProfile(private, public);
-    //console.log(profile);
-    //await readProfile(profile.id);
-    //const {private, public} = api.createCrypto();
-    //const profile = await api.createOwnerProfile(private, public);
-    //const claim = await claimCreationSample();
-    //await testAssetUpdate();
-    //await testClaimUpdate();
-
-    //await basicIssueTokenSample();
     await issueTokenSample();
-   //  const claim = await claimCreationSample();
 
-    /*
-
-    const claim = await claimCreationSample();
-
-    setTimeout(async ()=>{
-      const doc = await api.uploadDocument(claim.id, '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
-      const documents = await api.listDocuments(claim.id);  
-      const updateDoc = await api.updateDocument(doc.id, claim.id, '/Users/ycarmel/go/src/github.com/ownera/core/app/kyab1d1.pdf');
-      setTimeout(async ()=>{
-        const file = documents[0];
-        await api.downloadDocument(claim.id, file.id, file.name);
-      }, 3000);
-    }, 5000);*/
-  })();
+})();
 
