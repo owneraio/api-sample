@@ -39,6 +39,30 @@ async function testAssetUpdate(){
   console.log(a);
 }
 
+async function basicIssueTokenSample(){
+  const crypto1 = api.createCrypto();
+  const owner1 = await api.createOwnerProfile(crypto1.private, crypto1.public);
+  const crypto2 = api.createCrypto();
+  const owner2 = await api.createOwnerProfile(crypto2.private, crypto2.public);
+
+  const assetProfile = await api.createProfileForAsset({a: 5});
+  await api.issueToken(assetProfile.id, crypto1.public, 100);
+  await api.issueToken(assetProfile.id, crypto1.public, 50);
+  setTimeout(async ()=>{
+    await api.balanceToken(assetProfile.id, crypto1.public);
+    await api.balanceToken(assetProfile.id, crypto2.public);
+
+    await api.transferTokens(assetProfile.id, crypto1.private, crypto1.public, crypto2.public, 50);
+
+    setTimeout(async ()=>{
+      await api.balanceToken(assetProfile.id, crypto1.public);
+      await api.balanceToken(assetProfile.id, crypto2.public);
+    }, 5*1000);
+  }, 5*1000);
+
+}
+
+
 async function issueTokenSample(){
   const crypto1 = api.createCrypto();
   const owner1 = await api.createOwnerProfile(crypto1.private, crypto1.public);
@@ -64,7 +88,7 @@ async function issueTokenSample(){
 
   const assetProfile = await api.createProfileForAsset(
     {
-      buyerInvestorTypeRules: [
+      buyerRules: [
         [
           {type: 'KYC-Location', key: 'country', value: 'US'},
           {type: 'KYC-Investor', key: 'accredited', value: true}
@@ -87,8 +111,6 @@ async function issueTokenSample(){
       await api.balanceToken(assetProfile.id, crypto2.public);
     }, 5*1000);
   }, 5*1000);
-
-
 }
 
 
@@ -107,6 +129,7 @@ async function issueTokenSample(){
     //await testAssetUpdate();
     //await testClaimUpdate();
 
+    //await basicIssueTokenSample();
     await issueTokenSample();
    //  const claim = await claimCreationSample();
 
