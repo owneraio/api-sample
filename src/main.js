@@ -1,5 +1,6 @@
 const api = require('./api');
 
+
 async function claimCreationSample(){
     const {private, public} = api.createCrypto();
     const profile = await api.createOwnerProfile(private, public);
