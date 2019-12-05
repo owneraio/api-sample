@@ -1,20 +1,7 @@
-jest.mock('../../src/helpers/configuration', () => {
-    return {
-        SERVER_BASE_URI: 'https://api.ownera.io'
-    };
-});
-jest.setTimeout(10000);
+jest.setTimeout(30000);
 
 const api = require('../../src/api');
-
-const getClaimConfiguration = async () => {
-    const {private: prvt, public: pub} = api.createCrypto();
-    const profile = await api.createOwnerProfile(prvt, pub);
-    const issuerProfile = await api.createProfileForProvider("node1");
-    const year_plus_1 = new Date();
-    year_plus_1.setFullYear(year_plus_1.getFullYear() + 1);
-    return {issuerProfile, profile, year_plus_1: year_plus_1.toISOString()}
-}
+const {delay, getClaimConfiguration} = require('../utils');
 
 describe('test claims', () => {
     test(`
@@ -23,7 +10,9 @@ describe('test claims', () => {
     When      calling createClaim with the given values
     Then      claim will be created
     `, async () => {
-        const {issuerProfile, profile, year_plus_1} = await getClaimConfiguration();
+        expect.assertions(7);
+
+        const {issuerProfile, profile, year_plus_1} = await getClaimConfiguration('node1');
         const type = 'KYC';
         const issuanceDate = new Date().toISOString();
         const data = {blabla: 1};
@@ -48,13 +37,35 @@ describe('test claims', () => {
 
 
     test(`
-    Scenario: update claim & check it been update (readProfile)
+    Scenario: update claim
     Given     claimId, issuanceDate, expirationDate, data
     When      calling updateClaim with the given values
     Then      claim will be updated
-    When      calling readProfile with claim id
-    Then      receive the updated claim info
     `, async () => {
+        expect.assertions(1);
 
-    })
+        const {issuerProfile, profile, year_plus_1} = await getClaimConfiguration('node1');
+        const type = 'KYC';
+        const issuanceDate = new Date().toISOString();
+        const data = {blabla: 1};
+        const claimC = await api.createClaim(
+            type,
+            issuerProfile.id,
+            issuanceDate,
+            year_plus_1,
+            profile.id,
+            data
+        );
+
+        await delay(2000);
+
+        const dataU = {blabla: 2, kuku: 1};
+        const claimU = await api.updateClaim(claimC.id,
+            new Date().toISOString(),
+            year_plus_1,
+            dataU
+        );
+
+        expect(claimU.data).toMatch(JSON.stringify(dataU))
+    });
 });

@@ -1,9 +1,3 @@
-jest.mock('../src/helpers/configuration', () => {
-    return {
-        SERVER_BASE_URI: 'https://api.ownera.io'
-    };
-});
-
 const {validateProfileStructure} = require('./utils');
 const api = require('../src/api');
 

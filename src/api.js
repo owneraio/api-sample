@@ -17,8 +17,8 @@ function createCrypto() {
     return {private: privKey, public: pubKey};
 }
 
-async function createOwnerProfile(privKey, publicKey) {
-    const signature = signMessage(privKey, ['createOwnerProfile', publicKey]);
+async function createOwnerProfile(privateKey, publicKey) {
+    const signature = signMessage(privateKey, ['createOwnerProfile', publicKey]);
 
     return restRequest({
         type: 'post',
@@ -175,7 +175,6 @@ async function listTokens(recipientPublicKey) {
 async function transferTokens(assetId, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity) {
     const nonce = crypto.randomBytes(24);
     const signature = signMessage(sourcePrivateKey, [nonce, "transfer", recipientPublicKey, assetId, '0x' + quantity.toString(16)]);
-    console.log(signature.length);
 
     return restRequest({
         type: 'put',

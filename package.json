@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/main.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/tests/helpers/testConfiguration.js"
+    ]
+  },
   "dependencies": {
     "axios": "^0.19.0",
     "file-saver": "^2.0.2",
@@ -14,9 +22,6 @@
   "devDependencies": {
     "@types/jest": "^24.0.23",
     "jest": "^24.9.0"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC"

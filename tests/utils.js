@@ -1,3 +1,4 @@
+const api = require('../src/api');
 
 ` profile structure:
     {
@@ -11,7 +12,7 @@
         claimIssuerIDs : []
     }
 `
-const validateProfileStructure = (profile, type) => {
+exports.validateProfileStructure = (profile, type) => {
     expect(profile).toEqual(
         expect.objectContaining({
             id: expect.any(String),
@@ -34,4 +35,18 @@ const validateProfileStructure = (profile, type) => {
 };
 
 
-exports.validateProfileStructure = validateProfileStructure;
+exports.delay = (time) => new Promise(resolve => {
+    setTimeout(resolve, time);
+});
+
+exports.getClaimConfiguration = async (providerName) => {
+    if (!providerName) {
+        console.warn('getClaimConfiguration: providerName is missing');
+    }
+    const crypto = api.createCrypto();
+    const profile = await api.createOwnerProfile(crypto.private, crypto.public);
+    const issuerProfile = await api.createProfileForProvider(providerName);
+    const year_plus_1 = new Date();
+    year_plus_1.setFullYear(year_plus_1.getFullYear() + 1);
+    return {issuerProfile, profile, year_plus_1: year_plus_1.toISOString(), crypto}
+};

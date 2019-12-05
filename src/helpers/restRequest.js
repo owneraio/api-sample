@@ -1,24 +1,32 @@
 const axios = require('axios');
 
-const handleErrors = (error) => {
+const handleErrors = (error, name) => {
+    let errorMsg = '';
     if (error.response) {
-        const response = error.response;
-        console.log(response.data);
-        console.log(response.status);
-        console.log(response.headers);
+        const {headers, status, data} = error.response;
+        console.warn(`${name} status ${status} response:`, data, headers);
+        errorMsg = data.error.message;
     } else if (error.request) {
-        console.log(error.request);
+        console.warn(`${name} response:`, error.request);
+        errorMsg = error.request;
     } else {
-        console.log('Error', error.message);
+        console.warn(`${name} response:`, error.message);
+        errorMsg = error.message;
     }
+    
+    return errorMsg
 };
 
-const restRequest = ({type, data, url}) => new Promise((resolve) => {
-    axios[type](url, data).then(({status, data}) => {
-        status && console.log("STATUS=" + status);
-        data && console.log("data=" + JSON.stringify(data));
-        resolve(data);
-    }).catch(handleErrors)
+const restRequest = ({type, data, url}) => new Promise((resolve, reject) => {
+    const name = `${type}:${url}`;
+    console.log(`${name} request:`, data);
+    axios[type](url, data).then(({status, data: response}) => {
+        console.log(`${name} status ${status} response:`, response);
+        resolve(response);
+    }).catch((error) => {
+        const errorMsg = handleErrors(error, name);
+        reject(errorMsg);
+    })
 });
 
 exports.restRequest = restRequest;
