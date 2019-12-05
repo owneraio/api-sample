@@ -38,8 +38,8 @@ async function createOwnerProfile(privKey, publicKey){
             console.log('Error', error.message);
           }
       });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+    console.log(`createOwnerProfile status Success`);
+    console.log("profile = "+JSON.stringify(response.data, null, '\t'));
     return response.data;
 }
 
@@ -57,8 +57,8 @@ async function createProfileForProvider(name){
           console.log('Error', error.message);
         }
     });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+    console.log(`createProfileForProvider status Success`);
+    console.log("profile = "+JSON.stringify(response.data, null, '\t'));
     return response.data;
 }
 
@@ -77,8 +77,8 @@ async function createProfileForAsset(config, regApps){
           console.log('Error', error.message);
         }
     });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+    console.log(`createProfileForAsset status Success`);
+    console.log("profile = "+JSON.stringify(response.data, null, '\t'));
     return response.data;
 }
 
@@ -96,8 +96,8 @@ async function updateProfileForAsset(id, config){
           console.log('Error', error.message);
         }
     });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+    console.log(`updateProfileForAsset status Success`);
+    console.log("profile = "+JSON.stringify(response.data, null, '\t'));
     return response.data;
 }
 
@@ -113,8 +113,8 @@ async function readProfile(id){
             console.log('Error', error.message);
           }
       });  
-    console.log("STATUS="+response.status);
-    return response.data;
+      console.log(`readProfile status ${response.status}`);
+      return response.data;
 }
 
 async function uploadDocument(claimId, file){
@@ -150,8 +150,8 @@ async function updateDocument(docId, claimId, file){
 
 async function listDocuments(claimId){
     const response = await axios.get(`${SERVER_BASE_URI}/api/docs/${claimId}`);
-    console.log("STATUS="+response.status); 
-    console.log("data="+JSON.stringify(response.data));  
+    console.log(`listDocuments status ${response.status}`);
+    console.log("documentList = "+JSON.stringify(response.data, null, '\t'));  
     return response.data;
 }
 
@@ -182,8 +182,8 @@ async function createClaim(type, issuerId, issuanceDate, expirationDate, subject
             console.log('Error', error.message);
           }
       });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+      console.log(`createClaim status Success`);
+      console.log("Claim = "+JSON.stringify(response.data, null, '\t'));
     return response.data;
 }
 
@@ -204,8 +204,8 @@ async function updateClaim(id, issuanceDate, expirationDate, data){
             console.log('Error', error.message);
           }
       });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+      console.log(`updateClaim status Success`);
+    console.log("Claim = "+JSON.stringify(response.data, null, '\t'));
     return response.data;
 }
 
@@ -221,7 +221,8 @@ async function readClaim(id){
             console.log('Error', error.message);
           }
       });  
-    console.log("STATUS="+response.status);
+      console.log(`readClaim status Success`);
+      return response.data;
 }
 
 
@@ -240,8 +241,7 @@ async function issueToken(assetId, recipientPublicKey, quantity){
             console.log('Error', error.message);
           }
       });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+      console.log(`issueToken status Success`);
     return response.data;
 }
 
@@ -257,8 +257,7 @@ async function balanceToken(assetId, recipientPublicKey){
             console.log('Error', error.message);
           }
       });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+    console.log(`TokenBalance is ${response.data.balance}`);
     return response.data;
 }
 
@@ -274,15 +273,14 @@ async function listTokens(recipientPublicKey){
             console.log('Error', error.message);
           }
       });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+      console.log(`listTokens status Success`);
+    console.log("data="+JSON.stringify(response.data, null, '\t'));
     return response.data;
 }
 
 async function transferTokens(assetId, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity){
     const nonce = crypto.randomBytes(24);
     const signature = signMessage(sourcePrivateKey, [nonce, "transfer", recipientPublicKey, assetId, '0x'+quantity.toString(16)]);
-    console.log(signature.length);
     const response = await axios.put(`${SERVER_BASE_URI}/api/tokens/${assetId}/transfer`, {
         "sourcePublicKey": sourcePublicKey.toString('hex'),
         "recipientPublicKey": recipientPublicKey.toString('hex'),
@@ -291,19 +289,17 @@ async function transferTokens(assetId, sourcePrivateKey, sourcePublicKey, recipi
         "signature":signature,
       }).catch(function (error) {
         if (error.response) {
-            console.log(error.response.data);
-            console.log(error.response.status);
-            console.log(error.response.headers);
+            console.log(`transferTokens status ${error.response.status}`);
+            if(error.response.data && error.response.data.error)
+                console.log(error.response.data.error);
           } else if (error.request) {
             console.log(error.request);
           } else {
             console.log('Error', error.message);
           }
-      });  
-    console.log("STATUS="+response.status);
-    console.log("data="+JSON.stringify(response.data));
+    });  
+    console.log(`transferTokens ${response.data.status}`);
     return response.data;
-
 }
 
 function signMessage(privKey, values, recovery){

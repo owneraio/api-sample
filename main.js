@@ -65,12 +65,17 @@ async function basicIssueTokenSample(){
 async function issueTokenSample(){
   const crypto1 = api.createCrypto();
   const owner1 = await api.createOwnerProfile(crypto1.private, crypto1.public);
+
   const crypto2 = api.createCrypto();
   const owner2 = await api.createOwnerProfile(crypto2.private, crypto2.public);
+
+  const crypto3 = api.createCrypto();
+  const owner3 = await api.createOwnerProfile(crypto3.private, crypto3.public);
 
   const kycProvider = await api.createProfileForProvider("KYCProvider");
   const year_plus_1 = new Date(); year_plus_1.setFullYear(year_plus_1.getFullYear() + 1);
 
+  // Owner 2 Claims
   await api.createClaim("KYC-Location",
     kycProvider.id, 
     new Date().toISOString(), 
@@ -85,6 +90,21 @@ async function issueTokenSample(){
     owner2.id,
     { accredited: true});
 
+    //Owner 3 claims
+    await api.createClaim("KYC-Location",
+    kycProvider.id, 
+    new Date().toISOString(), 
+    year_plus_1.toISOString(),
+    owner2.id,
+    { country: 'US'});
+
+  await api.createClaim("KYC-Investor",
+    kycProvider.id, 
+    new Date().toISOString(), 
+    year_plus_1.toISOString(),
+    owner2.id,
+    { accredited: false});
+
   const assetProfile = await api.createProfileForAsset(
     {
       recipientRules: [
@@ -97,6 +117,7 @@ async function issueTokenSample(){
     },
     ['RecipientClaimVerification'] // enabled regulation apps
   );
+
   await api.issueToken(assetProfile.id, crypto1.public, 100);
   await api.issueToken(assetProfile.id, crypto1.public, 50);
   setTimeout(async ()=>{
