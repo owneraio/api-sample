@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const {SERVER_BASE_URI} = require('./helpers/configuration');
 const secp256k1 = require('secp256k1');
 const {restRequest} = require('./helpers/restRequest');
