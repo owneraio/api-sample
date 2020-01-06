@@ -70,11 +70,15 @@ async function readProfile(id) {
     });
 }
 
-async function uploadDocument(claimId, file) {
-    const formData = {
+const getFormData = (file) => {
+    return {
         file: fs.createReadStream(file),
-    };
+    }
+};
 
+async function uploadDocument(claimId, file) {
+    const formData = getFormData(file);
+    console.log('!!!!!!!!! uploadDocument 222', formData)
     return docRequest({
         type: 'post',
         url: `${SERVER_BASE_URI}/api/docs/${claimId}`,
@@ -83,9 +87,7 @@ async function uploadDocument(claimId, file) {
 }
 
 async function updateDocument(docId, claimId, file) {
-    const formData = {
-        file: fs.createReadStream(file),
-    };
+    const formData = getFormData(file);
     return docRequest({
         type: 'put',
         url: `${SERVER_BASE_URI}/api/docs/${claimId}/${docId}`,
