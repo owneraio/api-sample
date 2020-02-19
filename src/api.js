@@ -96,11 +96,8 @@ async function uploadDocument({claimId, filePath, crypto, name, mimetype}) {
         type: 'post',
         url: `${SERVER_BASE_URI}/api/docs/${claimId}`,
 
-        body: {
-            file: fileBuffer,
-            signature,
-            name,
-            mimetype
+        formData: {
+            file: fs.createReadStream(filePath),
         }
     });
 }
@@ -117,11 +114,8 @@ async function updateDocument({docId, claimId, filePath, crypto, name, mimetype}
         type: 'put',
         url: `${SERVER_BASE_URI}/api/docs/${claimId}/${docId}`,
 
-        body: {
-            file: fileBuffer,
-            signature,
-            name,
-            mimetype
+        formData: {
+            file: fs.createReadStream(filePath),
         }
     });
 }
@@ -163,15 +157,14 @@ async function createClaim({type, issuerId, issuanceDate, expirationDate, subjec
     });
 }
 
-async function updateClaim({claimId, issuerId, issuanceDate, expirationDate, data, crypto}) {
+async function updateClaim({claimId, issuanceDate, expirationDate, data, crypto}) {
     const signature = signMessage(crypto.private, [
         'UpdateClaim',
         ...orderValuesForHash({
             data: JSON.stringify(data),
             expirationDate,
             claimId,
-            issuanceDate,
-            issuerId
+            issuanceDate
         })
     ]);
 
