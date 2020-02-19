@@ -25,8 +25,9 @@ describe(`create profiles`, () => {
         expect.assertions(4);
 
         const name = 'node1';
-        const profile = await api.createProfileForProvider(name);
-        validateProfileStructure(profile, 'MSPID');
+        const crypto = api.createCrypto();
+        const profile = await api.createProfileForProvider({name, crypto});
+        validateProfileStructure(profile, 'ECDSA');
         expect(profile.name).toMatch(name)
     });
 
@@ -39,10 +40,12 @@ describe(`create profiles`, () => {
     `, async () => {
         expect.assertions(4);
         const config = {a: 5};
-        const profile = await api.createProfileForAsset(config);
-
+        const regulationApps = [{id: 'app'}];
+        const name = 'assetName';
+        const type = 'assetType';
+        const profile = await api.createProfileForAsset({config, regulationApps, name, type});
         validateProfileStructure(profile, 'MSPID');
 
-        expect(profile.config).toMatch(JSON.stringify(config))
+        expect(JSON.parse(profile.config)).toMatchObject({...config, name, type, regulationApps})
     });
 });

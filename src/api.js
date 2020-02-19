@@ -6,6 +6,8 @@ const {restRequest} = require('./helpers/restRequest');
 const {docRequest} = require('./helpers/docRequest');
 const crypto = require('crypto');
 const fs = require('fs');
+const {orderValuesForHash} = require('./helpers/utils');
+
 
 function createCrypto() {
     // generate privKey
@@ -26,39 +28,50 @@ async function createOwnerProfile(privateKey, publicKey) {
         type: 'post',
         url: `${SERVER_BASE_URI}/api/profiles/owner`,
         data: {
-            "publicKey": publicKey.toString('hex'),
+            'publicKey': publicKey.toString('hex'),
             signature
         }
     });
 }
 
-async function createProfileForProvider(name) {
+async function createProfileForProvider({name, crypto}) {
+    const signature = signMessage(crypto.private, ['createProviderProfile', ...orderValuesForHash({
+        name,
+        publickKey: crypto.public
+    })]);
     return restRequest({
         type: 'post',
         url: `${SERVER_BASE_URI}/api/profiles/provider`,
         data: {
-            name
+            name,
+            publicKey: crypto.public.toString('hex'),
+            signature,
         }
     });
 }
 
-async function createProfileForAsset(config, regApps) {
+async function createProfileForAsset({config, regulationApps, name, type}) {
     return restRequest({
         type: 'post',
         url: `${SERVER_BASE_URI}/api/profiles/asset`,
         data: {
+            name,
+            type,
             config,
-            "regulationApps": regApps
+            regulationApps
         }
     });
 }
 
-async function updateProfileForAsset(id, config) {
+async function updateProfileForAsset({id, config, regulationApps, name, type}) {
     return restRequest({
         type: 'put',
         url: `${SERVER_BASE_URI}/api/profiles/${id}/asset`,
         data: {
-            config
+            name,
+            type,
+            config,
+            regulationApps
         }
     });
 }
@@ -70,28 +83,46 @@ async function readProfile(id) {
     });
 }
 
-const getFormData = (file) => {
-    return {
-        file: fs.createReadStream(file),
-    }
-};
+const readFile = (file) => fs.readFileSync(file);
 
-async function uploadDocument(claimId, file) {
-    const formData = getFormData(file);
-    console.log('!!!!!!!!! uploadDocument 222', formData)
+async function uploadDocument({claimId, filePath, crypto, name, mimetype}) {
+    const fileBuffer = readFile(filePath);
+    const signature = signMessage(crypto.private, ['CreateDocument', ...orderValuesForHash({
+        claimId,
+        file: fileBuffer.toString('base64')
+    })]);
+
     return docRequest({
         type: 'post',
         url: `${SERVER_BASE_URI}/api/docs/${claimId}`,
-        formData
+
+        body: {
+            file: fileBuffer,
+            signature,
+            name,
+            mimetype
+        }
     });
 }
 
-async function updateDocument(docId, claimId, file) {
-    const formData = getFormData(file);
+async function updateDocument({docId, claimId, filePath, crypto, name, mimetype}) {
+    const fileBuffer = readFile(filePath);
+    const signature = signMessage(crypto.private, ['UpdateDocument', ...orderValuesForHash({
+        claimId,
+        file: fileBuffer.toString('base64'),
+        id: docId
+    })]);
+
     return docRequest({
         type: 'put',
         url: `${SERVER_BASE_URI}/api/docs/${claimId}/${docId}`,
-        formData
+
+        body: {
+            file: fileBuffer,
+            signature,
+            name,
+            mimetype
+        }
     });
 }
 
@@ -112,34 +143,42 @@ async function downloadDocument(claimId, fileId, name) {
     fs.writeFileSync(`/tmp/${name}`, data);
 }
 
-async function createClaim(type, issuerId, issuanceDate, expirationDate, subjectId, data) {
-    const claim = {
-        type,
-        issuerId,
-        issuanceDate,
-        expirationDate,
-        subjectId,
-        data
-    };
+async function createClaim({type, issuerId, issuanceDate, expirationDate, subjectId, data, crypto}) {
+    const signature = signMessage(crypto.private, [
+        'CreateClaim',
+        ...orderValuesForHash({
+            data:JSON.stringify(data),
+            expirationDate,
+            issuanceDate,
+            issuerId,
+            subjectId,
+            type,
+        })
+    ]);
 
     return restRequest({
         type: 'post',
         url: `${SERVER_BASE_URI}/api/claims`,
-        data: claim
+        data: {type, issuerId, issuanceDate, expirationDate, subjectId, data, signature}
     });
 }
 
-async function updateClaim(id, issuanceDate, expirationDate, data) {
-    const claim = {
-        issuanceDate: issuanceDate,
-        expirationDate: expirationDate,
-        data: data
-    };
+async function updateClaim({claimId, issuerId, issuanceDate, expirationDate, data, crypto}) {
+    const signature = signMessage(crypto.private, [
+        'UpdateClaim',
+        ...orderValuesForHash({
+            data: JSON.stringify(data),
+            expirationDate,
+            claimId,
+            issuanceDate,
+            issuerId
+        })
+    ]);
 
     return restRequest({
         type: 'put',
-        url: `${SERVER_BASE_URI}/api/claims/${id}`,
-        data: claim
+        url: `${SERVER_BASE_URI}/api/claims/${claimId}`,
+        data: {id: claimId, issuanceDate, expirationDate, data, signature}
     });
 }
 
@@ -156,7 +195,7 @@ async function issueToken(assetId, recipientPublicKey, quantity) {
         type: 'post',
         url: `${SERVER_BASE_URI}/api/tokens/${assetId}`,
         data: {
-            "recipientPublicKey": recipientPublicKey.toString('hex'),
+            'recipientPublicKey': recipientPublicKey.toString('hex'),
             quantity
         }
     });
@@ -178,25 +217,26 @@ async function listTokens(recipientPublicKey) {
 
 async function transferTokens(assetId, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity) {
     const nonce = crypto.randomBytes(24);
-    const signature = signMessage(sourcePrivateKey, [nonce, "transfer", recipientPublicKey, assetId, '0x' + quantity.toString(16)]);
+    const signature = signMessage(sourcePrivateKey, [nonce, 'transfer', recipientPublicKey, assetId, '0x' + quantity.toString(16)]);
 
     return restRequest({
         type: 'put',
         url: `${SERVER_BASE_URI}/api/tokens/${assetId}/transfer`,
         data: {
-            "sourcePublicKey": sourcePublicKey.toString('hex'),
-            "recipientPublicKey": recipientPublicKey.toString('hex'),
-            "quantity": quantity,
-            "nonce": nonce.toString('hex'),
+            'sourcePublicKey': sourcePublicKey.toString('hex'),
+            'recipientPublicKey': recipientPublicKey.toString('hex'),
+            'quantity': quantity,
+            'nonce': nonce.toString('hex'),
             signature,
         }
     });
 }
 
-function signMessage(privKey, values, recovery) {
-    var sh3 = crypto.createHash("sha3-256");
+function signMessage(privKey, values) {
+    const sh3 = crypto.createHash('sha3-256');
 
     values.forEach((v) => {
+        console.log('value to hash', v);
         sh3.update(v);
     });
 
@@ -204,12 +244,7 @@ function signMessage(privKey, values, recovery) {
 
     // sign the message
     const sigObj = secp256k1.sign(msg, privKey);
-    if (recovery) {
-        const sigObjR = Buffer.concat([sigObj.signature, Buffer.from(new Uint8Array([sigObj.recovery]))]);
-        return sigObjR.toString('hex');
-    } else {
-        return sigObj.signature.toString('hex');
-    }
+    return sigObj.signature.toString('hex');
 }
 
 
