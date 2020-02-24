@@ -1,7 +1,7 @@
 const requestp = require('request-promise-native');
 
 const docRequest = ({type, url, formData}) => new Promise((resolve, reject) => {
-    requestp[type]({url, formData }).then((response) => {
+    requestp[type]({url, formData}).then((response) => {
         console.log('doc response: ', response);
         resolve(response);
     }).catch((error) => {

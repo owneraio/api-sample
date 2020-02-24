@@ -83,30 +83,27 @@ async function readProfile(id) {
     });
 }
 
-const readFile = (file) => fs.readFileSync(file);
 
-async function uploadDocument({claimId, filePath, crypto, name, mimetype}) {
-    const fileBuffer = readFile(filePath);
+async function uploadDocument({claimId, filePath, crypto}) {
     const signature = signMessage(crypto.private, ['CreateDocument', ...orderValuesForHash({
         claimId,
-        file: fileBuffer.toString('base64')
+        file: fs.readFileSync(filePath)
     })]);
 
     return docRequest({
         type: 'post',
         url: `${SERVER_BASE_URI}/api/docs/${claimId}`,
-
         formData: {
             file: fs.createReadStream(filePath),
+            signature
         }
     });
 }
 
-async function updateDocument({docId, claimId, filePath, crypto, name, mimetype}) {
-    const fileBuffer = readFile(filePath);
+async function updateDocument({docId, claimId, filePath, crypto}) {
     const signature = signMessage(crypto.private, ['UpdateDocument', ...orderValuesForHash({
         claimId,
-        file: fileBuffer.toString('base64'),
+        file: fs.readFileSync(filePath),
         id: docId
     })]);
 
@@ -116,6 +113,7 @@ async function updateDocument({docId, claimId, filePath, crypto, name, mimetype}
 
         formData: {
             file: fs.createReadStream(filePath),
+            signature
         }
     });
 }
@@ -141,7 +139,7 @@ async function createClaim({type, issuerId, issuanceDate, expirationDate, subjec
     const signature = signMessage(crypto.private, [
         'CreateClaim',
         ...orderValuesForHash({
-            data:JSON.stringify(data),
+            data: JSON.stringify(data),
             expirationDate,
             issuanceDate,
             issuerId,
@@ -229,7 +227,7 @@ function signMessage(privKey, values) {
     const sh3 = crypto.createHash('sha3-256');
 
     values.forEach((v) => {
-        console.log('value to hash', v);
+        // console.log('value to hash', v);
         sh3.update(v);
     });
 

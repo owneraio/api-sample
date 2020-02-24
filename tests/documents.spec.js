@@ -26,13 +26,15 @@ describe(`upload files`, () => {
             crypto
         });
         await delay(5000);
-        const doc = await api.uploadDocument({
+        const uploadResponse = await api.uploadDocument({
             claimId: claim.id,
             filePath: path.resolve(__dirname, 'test.txt'),
             crypto,
             mimetype: 'text',
             name: 'test'
         });
+
+        const doc = JSON.parse(uploadResponse);
 
         expect(doc).toEqual(
             expect.objectContaining({
