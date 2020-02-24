@@ -2,6 +2,7 @@ jest.setTimeout(30000);
 
 const {getClaimConfiguration, delay} = require('./utils');
 const api = require('../src/api');
+const path = require('path');
 
 describe(`upload files`, () => {
     test(`
@@ -11,20 +12,29 @@ describe(`upload files`, () => {
         When      uploadDocument(claim.id, file)
         Then      the file will be attached to the claim
     `, async (done) => {
-        const {issuerProfile, profile, year_plus_1} = await getClaimConfiguration('node1');
+        const {issuerProfile, profile, year_plus_1, crypto} = await getClaimConfiguration('node1');
         const type = 'KYC';
         const issuanceDate = new Date().toISOString();
         const data = {blabla: 1};
-        const claim = await api.createClaim(
+        const claim = await api.createClaim({
             type,
-            issuerProfile.id,
+            issuerId: issuerProfile.id,
             issuanceDate,
-            year_plus_1,
-            profile.id,
-            data
-        );
+            expirationDate: year_plus_1,
+            subjectId: profile.id,
+            data,
+            crypto
+        });
         await delay(5000);
-        const doc = await api.uploadDocument(claim.id, __dirname +'/test.txt');
+        const uploadResponse = await api.uploadDocument({
+            claimId: claim.id,
+            filePath: path.resolve(__dirname, 'test.txt'),
+            crypto,
+            mimetype: 'text',
+            name: 'test'
+        });
+
+        const doc = JSON.parse(uploadResponse);
 
         expect(doc).toEqual(
             expect.objectContaining({
@@ -34,7 +44,14 @@ describe(`upload files`, () => {
 
         console.log('uploadDocument response ', doc);
         const documents = await api.listDocuments(claim.id);
-        const updateDoc = await api.updateDocument(doc.id, claim.id, __dirname +'/test.txt');
+        const updateDoc = await api.updateDocument({
+            docId: doc.id,
+            claimId: claim.id,
+            filePath: path.resolve(__dirname, 'test.txt'),
+            crypto,
+            mimetype: 'text',
+            name: 'test'
+        });
 
         await delay(3000);
 

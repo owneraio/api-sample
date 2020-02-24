@@ -16,7 +16,7 @@ describe('basic transfer operation', () => {
         await api.createOwnerProfile(crypto1.private, crypto1.public);
         crypto2 = api.createCrypto();
         await api.createOwnerProfile(crypto2.private, crypto2.public);
-        assetProfile = await api.createProfileForAsset({a: 5});
+        assetProfile = await api.createProfileForAsset({config:{a: 5}, name:'test', type:'test'});
     });
 
     test(`

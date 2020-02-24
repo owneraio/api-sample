@@ -4,9 +4,11 @@ const api = require('../src/api');
 describe(`update profiles`, () => {
     const config = {a: 5};
     let assetProfileC;
+    const name = 'tempAssetName';
+    const type = 'tempAssetType';
 
     beforeAll(async () => {
-        assetProfileC = await api.createProfileForAsset(config);
+        assetProfileC = await api.createProfileForAsset({config, name, type});
     });
 
     test(`
@@ -19,12 +21,13 @@ describe(`update profiles`, () => {
     `, async () => {
         expect.assertions(5);
         const updateConfig = {a: 6};
-        const assetProfileU = await api.updateProfileForAsset(assetProfileC.id, updateConfig);
+        const assetProfileU = await api.updateProfileForAsset({id: assetProfileC.id, config: updateConfig, name, type});
 
         validateProfileStructure(assetProfileU, 'MSPID');
-        expect(assetProfileU).toMatchObject({
-            ...assetProfileC,
-            config: JSON.stringify(updateConfig)
+        console.log('assetProfileU', assetProfileU)
+        expect(JSON.parse(assetProfileU.config)).toMatchObject({
+            ...JSON.parse(assetProfileC.config),
+            ...updateConfig
         });
 
         const assetInfoById = await api.readProfile(assetProfileU.id);
