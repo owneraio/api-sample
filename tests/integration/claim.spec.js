@@ -59,8 +59,6 @@ describe('test claims', () => {
             crypto
         });
 
-        await delay(2000);
-
         const dataU = {blabla: 2, kuku: 1};
         const claimU = await api.updateClaim({
             claimId: claimC.id,

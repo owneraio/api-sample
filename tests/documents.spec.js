@@ -1,6 +1,6 @@
 jest.setTimeout(30000);
 
-const {getClaimConfiguration, delay} = require('./utils');
+const {getClaimConfiguration} = require('./utils');
 const api = require('../src/api');
 const path = require('path');
 
@@ -25,14 +25,15 @@ describe(`upload files`, () => {
             data,
             crypto
         });
-        await delay(5000);
-        const doc = await api.uploadDocument({
+        const uploadResponse = await api.uploadDocument({
             claimId: claim.id,
             filePath: path.resolve(__dirname, 'test.txt'),
             crypto,
             mimetype: 'text',
             name: 'test'
         });
+
+        const doc = JSON.parse(uploadResponse);
 
         expect(doc).toEqual(
             expect.objectContaining({
@@ -50,8 +51,6 @@ describe(`upload files`, () => {
             mimetype: 'text',
             name: 'test'
         });
-
-        await delay(3000);
 
         const file = documents[0];
 

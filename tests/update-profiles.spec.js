@@ -24,7 +24,7 @@ describe(`update profiles`, () => {
         const assetProfileU = await api.updateProfileForAsset({id: assetProfileC.id, config: updateConfig, name, type});
 
         validateProfileStructure(assetProfileU, 'MSPID');
-        console.log('assetProfileU', assetProfileU)
+
         expect(JSON.parse(assetProfileU.config)).toMatchObject({
             ...JSON.parse(assetProfileC.config),
             ...updateConfig

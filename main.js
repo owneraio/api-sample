@@ -84,10 +84,6 @@ const {getClaimConfiguration, delay} = require('./tests/utils');
     // Primary Issuance for Owner 1
     await api.issueToken(assetProfile.id, crypto1.public, 150);
 
-    console.log('wait 2s before checking the current balance and transfer the tokens');
-    await delay(2000);
-    console.log('checking the balance and start the transfer');
-
     // Owner 1 Balance
     await api.balanceToken(assetProfile.id, crypto1.public);
     // Owner 2 Balance
@@ -111,7 +107,7 @@ const {getClaimConfiguration, delay} = require('./tests/utils');
     });
 
     console.log('wait 4s before checking the new balance');
-    await delay(4000);
+    // await delay(4000);
     console.log('checking the new balance');
     // Owner 1 Balance
     await api.balanceToken(assetProfile.id, crypto1.public);
@@ -120,7 +116,7 @@ const {getClaimConfiguration, delay} = require('./tests/utils');
     // Owner 3 Balance
     await api.balanceToken(assetProfile.id, crypto3.public);
 
-    await delay(2000);
+    // await delay(2000);
     console.log('Done.');
     process.exit();
 
