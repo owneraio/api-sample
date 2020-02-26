@@ -8,7 +8,8 @@ const handleErrors = (error, name) => {
         if (status === 422) {
             errorMsg = data.errors.reduce((msg, err) => msg.concat(`${err.msg}, `), '')
         } else {
-            errorMsg = data.error.message;
+            if(data.error)
+                errorMsg = data.error.message;
         }
 
     } else if (error.request) {
