@@ -169,7 +169,7 @@ async function updateClaim({claimId, issuanceDate, expirationDate, data, crypto}
     return restRequest({
         type: 'put',
         url: `${SERVER_BASE_URI}/api/claims/${claimId}`,
-        data: {id: claimId, issuanceDate, expirationDate, data, signature}
+        data: {issuanceDate, expirationDate, data, signature}
     });
 }
 

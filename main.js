@@ -1,5 +1,4 @@
 const api = require('./src/api');
-const {getClaimConfiguration, delay} = require('./tests/utils');
 
 (async function () {
 
@@ -67,8 +66,18 @@ const {getClaimConfiguration, delay} = require('./tests/utils');
         crypto: cryptoIssuer
     });
 
+    await api.createClaim({
+        type: "Accreditation",
+        issuerId: issuerProfile.id,
+        issuanceDate: new Date().toISOString(),
+        expirationDate: year_plus_1,
+        subjectId: owner2.id,
+        data: {"country": "usa"},
+        crypto: cryptoIssuer
+    });
+
     // Create a profile for an Asset representing Shares in Company Y
-    const assetProfile = await api.createProfileForAsset({config: {}, regulationApps: [{ id: 'store-id:did:ownera-provider:a2d9d368-42ba-45ad-b2b4-7c1c079d77e3RegD'}], name: 'Company Y', type: 'Company'});
+    const assetProfile = await api.createProfileForAsset({config: {}, regulationApps: [{ id: 'store-id:did:ownera-provider:c291be0d-e417-4059-b2de-484a3dad3635regd-no-seller'}], name: 'Company Y', type: 'Company'});
 
     // Write KYA for asset
     await api.createClaim({
@@ -81,8 +90,11 @@ const {getClaimConfiguration, delay} = require('./tests/utils');
         crypto: cryptoIssuer
     });
 
-    // Primary Issuance for Owner 1
-    await api.issueToken(assetProfile.id, crypto1.public, 150);
+    // Primary Issuance for Owner 1 - issue token fail
+    await api.issueToken(assetProfile.id, crypto1.public, 150).catch(console.log);
+
+    // Primary Issuance for Owner 2 - issue token success
+    await api.issueToken(assetProfile.id, crypto2.public, 150);
 
     // Owner 1 Balance
     await api.balanceToken(assetProfile.id, crypto1.public);
@@ -92,7 +104,7 @@ const {getClaimConfiguration, delay} = require('./tests/utils');
     await api.balanceToken(assetProfile.id, crypto3.public);
 
     // Transfer tokens from Owner 1 to Owner 2 - should fail
-    await api.transferTokens(assetProfile.id, crypto1.private, crypto1.public, crypto2.public, 50).catch(e => {
+    await api.transferTokens(assetProfile.id, crypto2.private, crypto2.public, crypto1.public, 50).catch(e => {
     });
 
     // Owner 1 Balance
@@ -103,12 +115,9 @@ const {getClaimConfiguration, delay} = require('./tests/utils');
     await api.balanceToken(assetProfile.id, crypto3.public);
 
     // Transfer tokens from Owner 1 to Owner 3
-    await api.transferTokens(assetProfile.id, crypto1.private, crypto1.public, crypto3.public, 50).catch(e => {
+    await api.transferTokens(assetProfile.id, crypto2.private, crypto2.public, crypto3.public, 50).catch(e => {
     });
 
-    console.log('wait 4s before checking the new balance');
-    // await delay(4000);
-    console.log('checking the new balance');
     // Owner 1 Balance
     await api.balanceToken(assetProfile.id, crypto1.public);
     // Owner 2 Balance
@@ -116,7 +125,6 @@ const {getClaimConfiguration, delay} = require('./tests/utils');
     // Owner 3 Balance
     await api.balanceToken(assetProfile.id, crypto3.public);
 
-    // await delay(2000);
     console.log('Done.');
     process.exit();
 
