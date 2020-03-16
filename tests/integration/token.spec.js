@@ -2,10 +2,10 @@
 jest.setTimeout(30000);
 
 const api = require('../../src/api');
-const {delay} = require('../utils');
 
 describe('basic transfer operation', () => {
     const quantity = 100;
+    const config = JSON.stringify({});
     let crypto1;
     let crypto2;
     let assetProfile;
@@ -16,7 +16,7 @@ describe('basic transfer operation', () => {
         await api.createOwnerProfile(crypto1.private, crypto1.public);
         crypto2 = api.createCrypto();
         await api.createOwnerProfile(crypto2.private, crypto2.public);
-        assetProfile = await api.createProfileForAsset({config:{a: 5}, name:'test', type:'test'});
+        assetProfile = await api.createProfileForAsset( {name:'test', type:'test', regulationApps:[], issuerId: 'issuerID', config});
     });
 
     test(`

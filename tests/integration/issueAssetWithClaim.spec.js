@@ -16,14 +16,14 @@ describe('issue token of asset with claim', () => {
         const {issuerProfile, profile, year_plus_1, crypto} = await getClaimConfiguration("KYCProvider");
         providerCrypto = crypto;
 
-        const issuanceDate = new Date().toISOString();
+        const issuanceDate = new Date().getTime();
         await api.createClaim({
             type: "KYC-Location",
             issuerId: issuerProfile.id,
             issuanceDate,
             expirationDate: year_plus_1,
             subjectId: profile.id,
-            data: {country: 'US'},
+            data: JSON.stringify({country: 'US'}),
             crypto: providerCrypto
         });
 
@@ -33,12 +33,13 @@ describe('issue token of asset with claim', () => {
             issuanceDate,
             expirationDate: year_plus_1,
             subjectId: profile.id,
-            data: {accredited: true},
+            data: JSON.stringify({accredited: true}),
             crypto: providerCrypto
         });
 
         assetProfile = await api.createProfileForAsset({
-            config: {},
+            issuerId: "issuerID",
+            config: JSON.stringify({}),
             regulationApps: [],
             name: 'testAssetName',
             type: 'testAssetType'

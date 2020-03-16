@@ -14,26 +14,26 @@ describe('test claims', () => {
 
         const {issuerProfile, profile, year_plus_1, crypto} = await getClaimConfiguration('node1');
         const type = 'KYC';
-        const issuanceDate = new Date().toISOString();
-        const data = {blabla: 1};
+        const issuanceDate = new Date();
+        const data = JSON.stringify({blabla: 1});
         const claim = await api.createClaim({
             type,
             issuerId: issuerProfile.id,
-            issuanceDate,
+            issuanceDate: issuanceDate.getTime(),
             expirationDate: year_plus_1,
             subjectId: profile.id,
             data,
             crypto
         });
 
-        expect(claim.type).toMatch(type);
+        expect(claim.claimType).toMatch(type);
         expect(claim.issuer).toMatch(issuerProfile.id);
-        expect(claim.issuanceDate).toMatch(issuanceDate);
-        expect(claim.expirationDate).toMatch(year_plus_1);
-        expect(claim.data).toMatch(JSON.stringify(data));
+        expect(new Date(claim.issuanceDate).toISOString()).toMatch(issuanceDate.toISOString());
+        expect(claim.expirationDate).toEqual(year_plus_1);
+        expect(claim.data).toMatch(data);
 
         expect(typeof claim.id).toBe('string');
-        expect(typeof claim.credentialSubject.id).toBe('string');
+        expect(typeof claim.credentialSubjectId).toBe('string');
     });
 
 
@@ -47,8 +47,8 @@ describe('test claims', () => {
 
         const {issuerProfile, profile, year_plus_1, crypto} = await getClaimConfiguration('node1');
         const type = 'KYC';
-        const issuanceDate = new Date().toISOString();
-        const data = {blabla: 1};
+        const issuanceDate = new Date().getTime();
+        const data = JSON.stringify({blabla: 1});
         const claimC = await api.createClaim({
             type,
             issuerId: issuerProfile.id,
@@ -59,16 +59,16 @@ describe('test claims', () => {
             crypto
         });
 
-        const dataU = {blabla: 2, kuku: 1};
+        const dataU = JSON.stringify({blabla: 2, kuku: 1});
         const claimU = await api.updateClaim({
             claimId: claimC.id,
             issuerId: issuerProfile.id,
-            issuanceDate: new Date().toISOString(),
+            issuanceDate: new Date().getTime(),
             expirationDate:year_plus_1,
             data: dataU,
             crypto
         });
 
-        expect(claimU.data).toMatch(JSON.stringify(dataU))
+        expect(claimU.data).toMatch(dataU)
     });
 });

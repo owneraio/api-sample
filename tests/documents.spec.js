@@ -14,8 +14,8 @@ describe(`upload files`, () => {
     `, async (done) => {
         const {issuerProfile, profile, year_plus_1, crypto} = await getClaimConfiguration('node1');
         const type = 'KYC';
-        const issuanceDate = new Date().toISOString();
-        const data = {blabla: 1};
+        const issuanceDate = new Date().getTime();
+        const data = JSON.stringify({blabla: 1});
         const claim = await api.createClaim({
             type,
             issuerId: issuerProfile.id,
