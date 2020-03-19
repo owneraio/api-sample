@@ -50,20 +50,21 @@ async function createProfileForProvider({name, crypto}) {
     });
 }
 
-async function createProfileForAsset({config, regulationApps, name, type}) {
+async function createProfileForAsset({ issuerId,regulationApps, name, type, config}) {
     return restRequest({
         type: 'post',
         url: `${SERVER_BASE_URI}/api/profiles/asset`,
         data: {
             name,
             type,
+            regulationApps,
             config,
-            regulationApps
+            issuerId
         }
     });
 }
 
-async function updateProfileForAsset({id, config, regulationApps, name, type}) {
+async function updateProfileForAsset({id, config, regulationApps, name, type, issuerId}) {
     return restRequest({
         type: 'put',
         url: `${SERVER_BASE_URI}/api/profiles/${id}/asset`,
@@ -71,7 +72,8 @@ async function updateProfileForAsset({id, config, regulationApps, name, type}) {
             name,
             type,
             config,
-            regulationApps
+            regulationApps,
+            issuerId
         }
     });
 }
@@ -132,6 +134,7 @@ async function downloadDocument(claimId, fileId, name) {
         url: `${SERVER_BASE_URI}/api/docs/${claimId}/${fileId}`,
     });
 
+    console.log('doc', data)
     fs.writeFileSync(`/tmp/${name}`, data);
 }
 
@@ -139,7 +142,7 @@ async function createClaim({type, issuerId, issuanceDate, expirationDate, subjec
     const signature = signMessage(crypto.private, [
         'CreateClaim',
         ...orderValuesForHash({
-            data: JSON.stringify(data),
+            data,
             expirationDate,
             issuanceDate,
             issuerId,
@@ -159,7 +162,7 @@ async function updateClaim({claimId, issuanceDate, expirationDate, data, crypto}
     const signature = signMessage(crypto.private, [
         'UpdateClaim',
         ...orderValuesForHash({
-            data: JSON.stringify(data),
+            data,
             expirationDate,
             claimId,
             issuanceDate
@@ -169,7 +172,7 @@ async function updateClaim({claimId, issuanceDate, expirationDate, data, crypto}
     return restRequest({
         type: 'put',
         url: `${SERVER_BASE_URI}/api/claims/${claimId}`,
-        data: {id: claimId, issuanceDate, expirationDate, data, signature}
+        data: {issuanceDate, expirationDate, data, signature}
     });
 }
 

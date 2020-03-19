@@ -2,13 +2,19 @@ const {validateProfileStructure} = require('./utils');
 const api = require('../src/api');
 
 describe(`update profiles`, () => {
-    const config = {a: 5};
+    const config = JSON.stringify({a: 5});
     let assetProfileC;
     const name = 'tempAssetName';
     const type = 'tempAssetType';
-
+    const regApps = [{id: 'test'}];
     beforeAll(async () => {
-        assetProfileC = await api.createProfileForAsset({config, name, type});
+        assetProfileC = await api.createProfileForAsset({
+            issuerId: 'issuerId',
+            regulationApps: regApps,
+            name,
+            type,
+            config
+        });
     });
 
     test(`
@@ -21,10 +27,17 @@ describe(`update profiles`, () => {
     `, async () => {
         expect.assertions(5);
         const updateConfig = {a: 6};
-        const assetProfileU = await api.updateProfileForAsset({id: assetProfileC.id, config: updateConfig, name, type});
+        const assetProfileU = await api.updateProfileForAsset({
+            id: assetProfileC.id,
+            regulationApps: regApps,
+            config: JSON.stringify(updateConfig),
+            name,
+            type,
+            issuerId: 'issuerId'
+        });
 
         validateProfileStructure(assetProfileU, 'MSPID');
-        console.log('assetProfileU', assetProfileU)
+
         expect(JSON.parse(assetProfileU.config)).toMatchObject({
             ...JSON.parse(assetProfileC.config),
             ...updateConfig
