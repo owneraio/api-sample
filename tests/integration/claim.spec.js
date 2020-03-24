@@ -10,7 +10,7 @@ describe('test claims', () => {
     When      calling createClaim with the given values
     Then      claim will be created
     `, async () => {
-        expect.assertions(7);
+        expect.assertions(10);
 
         const {issuerProfile, profile, year_plus_1, crypto} = await getClaimConfiguration('node1');
         const type = 'KYC';
@@ -34,6 +34,13 @@ describe('test claims', () => {
 
         expect(typeof claim.id).toBe('string');
         expect(typeof claim.credentialSubjectId).toBe('string');
+
+
+        const readClaimDara = await api.readClaim(claim.id);
+        expect(readClaimDara).toMatchObject(claim);
+        const readClaimDaraArr = await api.readClaims(profile.id);
+        expect(readClaimDaraArr).toHaveLength(1);
+        expect(readClaimDaraArr[0]).toMatchObject(claim);
     });
 
 
