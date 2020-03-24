@@ -177,9 +177,16 @@ async function updateClaim({claimId, issuanceDate, expirationDate, data, crypto}
 }
 
 async function readClaim(id) {
-    restRequest({
+    return restRequest({
         type: 'get',
         url: `${SERVER_BASE_URI}/api/claims/${id}`,
+    });
+}
+
+async function readClaims(id) {
+    return restRequest({
+        type: 'get',
+        url: `${SERVER_BASE_URI}/api/claims/profile/${id}`,
     });
 }
 
@@ -256,6 +263,7 @@ module.exports = {
     createClaim,
     updateClaim,
     readClaim,
+    readClaims,
     issueToken,
     balanceToken,
     listTokens,
