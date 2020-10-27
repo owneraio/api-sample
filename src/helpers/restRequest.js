@@ -23,10 +23,16 @@ const handleErrors = (error, name) => {
     return errorMsg
 };
 
+const config = {
+    headers: {
+        'Content-Type': 'application/json'
+    }
+};
+
 const restRequest = ({type, data, url}) => new Promise((resolve, reject) => {
     const name = `${type}:${url}`;
     console.log(`${name} ${type === 'get' ? '' : 'request:' + JSON.stringify(data)}`);
-    axios[type](url, data).then(({status, data: response}) => {
+    axios[type](url, data, config).then(({status, data: response}) => {
         if (status === 200) {
             console.log(`${name} status ${status} response:`, response);
             resolve(response);

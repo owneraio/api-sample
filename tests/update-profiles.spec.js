@@ -32,8 +32,6 @@ describe(`update profiles`, () => {
             regulationApps: regApps,
             config: JSON.stringify(updateConfig),
             name,
-            type,
-            issuerId: 'issuerId'
         });
 
         validateProfileStructure(assetProfileU, 'MSPID');

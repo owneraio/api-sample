@@ -31,7 +31,7 @@ exports.getClaimConfiguration = async (name) => {
         console.warn('getClaimConfiguration: providerName is missing');
     }
     const crypto = api.createCrypto();
-    const profile = await api.createOwnerProfile(crypto.private, crypto.public, JSON.stringify({}));
+    const profile = await api.createOwnerProfile(crypto.private, crypto.public);
     const issuerProfile = await api.createProfileForProvider({name, crypto, config: JSON.stringify({})});
     const year_plus_1 = new Date();
     year_plus_1.setFullYear(year_plus_1.getFullYear() + 1);

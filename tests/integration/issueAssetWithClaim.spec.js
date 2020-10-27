@@ -5,16 +5,19 @@ const {delay, getClaimConfiguration} = require('../utils');
 
 describe('issue token of asset with claim', () => {
     const quantity = 100;
-    let ownerCrypto;
-    let providerCrypto;
+    let owner1Crypto;
+    let owner2Crypto;
     let assetProfile;
+    let owner1Profile;
+    let owner2Profile;
 
     beforeAll(async () => {
-        ownerCrypto = api.createCrypto();
-        await api.createOwnerProfile(ownerCrypto.private, ownerCrypto.public);
+        owner1Crypto = api.createCrypto();
+        owner1Profile = await api.createOwnerProfile(owner1Crypto.private, owner1Crypto.public);
 
         const {issuerProfile, profile, year_plus_1, crypto} = await getClaimConfiguration("KYCProvider");
-        providerCrypto = crypto;
+        owner2Crypto = crypto;
+        owner2Profile = profile;
 
         const issuanceDate = new Date().getTime();
         await api.createClaim({
@@ -24,7 +27,7 @@ describe('issue token of asset with claim', () => {
             expirationDate: year_plus_1,
             subjectId: profile.id,
             data: JSON.stringify({country: 'US'}),
-            crypto: providerCrypto
+            crypto: owner2Crypto
         });
 
         await api.createClaim({
@@ -34,7 +37,7 @@ describe('issue token of asset with claim', () => {
             expirationDate: year_plus_1,
             subjectId: profile.id,
             data: JSON.stringify({accredited: true}),
-            crypto: providerCrypto
+            crypto: owner2Crypto
         });
 
         assetProfile = await api.createProfileForAsset({
@@ -65,15 +68,28 @@ describe('issue token of asset with claim', () => {
     
     `,
         async () => {
-            await api.issueToken(assetProfile.id, ownerCrypto.public, quantity).catch(err=>fail(err));
+            await api.issueToken({
+                assetId: assetProfile.id,
+                buyerId: owner1Profile.id,
+                recipientPublicKey: owner1Crypto.public,
+                quantity,
+            }).catch(err=>fail(err));
 
-            const startBalance1 = await api.balanceToken(assetProfile.id, ownerCrypto.public);
-            const startBalance2 = await api.balanceToken(assetProfile.id, providerCrypto.public);
+            const startBalance1 = await api.balanceToken(assetProfile.id, owner1Crypto.public);
+            const startBalance2 = await api.balanceToken(assetProfile.id, owner2Crypto.public);
 
-            await api.transferTokens(assetProfile.id, ownerCrypto.private, ownerCrypto.public, providerCrypto.public, quantity);
+            await api.transferTokens({
+                assetId: assetProfile.id,
+                sourcePrivateKey: owner1Crypto.private,
+                sourcePublicKey: owner1Crypto.public,
+                sellerId: owner1Profile.id,
+                recipientPublicKey: owner2Crypto.public,
+                buyerId: owner2Profile.id,
+                quantity,
+            });
 
-            const endBalance1 = await api.balanceToken(assetProfile.id, ownerCrypto.public);
-            const endBalance2 = await api.balanceToken(assetProfile.id, providerCrypto.public);
+            const endBalance1 = await api.balanceToken(assetProfile.id, owner1Crypto.public);
+            const endBalance2 = await api.balanceToken(assetProfile.id, owner2Crypto.public);
 
             expect(endBalance2.balance - startBalance2.balance).toBe(quantity);
             expect(startBalance1.balance - endBalance1.balance).toBe(quantity);
@@ -96,21 +112,21 @@ describe('issue token of asset with claim', () => {
     // `,
     //     async () => {
     //         expect.assertions(3);
-    //         await api.issueToken(assetProfile.id, providerCrypto.public, quantity);
+    //         await api.issueToken(assetProfile.id, owner2Crypto.public, quantity);
     //         await delay(5 * 1000);
     //
-    //         const startBalance1 = await api.balanceToken(assetProfile.id, ownerCrypto.public);
-    //         const startBalance2 = await api.balanceToken(assetProfile.id, providerCrypto.public);
+    //         const startBalance1 = await api.balanceToken(assetProfile.id, owner1Crypto.public);
+    //         const startBalance2 = await api.balanceToken(assetProfile.id, owner2Crypto.public);
     //
-    //         await api.transferTokens(assetProfile.id, providerCrypto.private, providerCrypto.public, ownerCrypto.public, quantity)
+    //         await api.transferTokens(assetProfile.id, owner2Crypto.private, owner2Crypto.public, owner1Crypto.public, quantity)
     //             .catch(errMsg => {
     //                 expect(errMsg.indexOf('RecipientClaimVerification failed')).toBeGreaterThan(0);
     //             });
     //
     //         await delay(5 * 1000);
     //
-    //         const endBalance1 = await api.balanceToken(assetProfile.id, ownerCrypto.public);
-    //         const endBalance2 = await api.balanceToken(assetProfile.id, providerCrypto.public);
+    //         const endBalance1 = await api.balanceToken(assetProfile.id, owner1Crypto.public);
+    //         const endBalance2 = await api.balanceToken(assetProfile.id, owner2Crypto.public);
     //
     //         expect(endBalance2.balance).toBe(startBalance2.balance);
     //         expect(startBalance1.balance).toBe(endBalance1.balance);
