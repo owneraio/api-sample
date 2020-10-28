@@ -146,7 +146,10 @@ const api = require('./src/api');
     }
 
     // Owner 1 Balance
-    // await api.balanceToken(assetProfile.id, crypto1.public);
+    const b1 = await api.balanceToken(assetProfile.id, crypto1.public);
+    console.log('-------------');
+    console.log(b1);
+    console.log('-------------');
     // Owner 2 Balance
     // await api.balanceToken(assetProfile.id, crypto2.public);
     // Owner 3 Balance

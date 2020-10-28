@@ -210,12 +210,16 @@ async function issueToken({ assetId, recipientPublicKey, quantity, buyerId }) {
     });
 }
 
-// async function balanceToken(assetId, recipientPublicKey) {
-//     return restRequest({
-//         type: 'get',
-//         url: `${SERVER_BASE_URI}/api/tokens/${recipientPublicKey.toString('hex')}/${assetId}`,
-//     });
-// }
+async function balanceToken(assetId, sourcePublicKey) {
+    return restRequest({
+        type: 'post',
+        url: `${SERVER_BASE_URI}/finapi/tokens/balance`,
+        data: {
+            asset: assetId,
+            sourcePublicKey: sourcePublicKey.toString('hex'),
+        },
+    });
+}
 
 async function transferTokens({ asset, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity, seller, buyer }) {
     const nonce = crypto.randomBytes(24);
@@ -289,7 +293,7 @@ module.exports = {
     // readClaim,
     // readClaims,
     issueToken,
-    // balanceToken,
+    balanceToken,
     transferTokens,
     redeemTokens,
 }
