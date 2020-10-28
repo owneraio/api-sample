@@ -5,22 +5,31 @@ const api = require('./src/api');
     // create owner1
     const crypto1 = api.createCrypto();
     const owner1 = await api.createOwnerProfile(crypto1.private, crypto1.public);
+    console.log('-------------');
+    console.log('owner1 ', owner1);
+    console.log('-------------');
 
     // Creating Owner profile 2
     const crypto2 = api.createCrypto();
     const owner2 = await api.createOwnerProfile(crypto2.private, crypto2.public);
+    console.log('-------------');
+    console.log('owner2 ', owner2);
+    console.log('-------------');
 
     // Creating Owner profile 3
     const crypto3 = api.createCrypto();
     const owner3 = await api.createOwnerProfile(crypto3.private, crypto3.public);
+    console.log('-------------');
+    console.log('owner3 ', owner3);
+    console.log('-------------');
 
     // Creating a Provider for KYC service
     // const cryptoIssuer = api.createCrypto();
     // const issuerProfile = await api.createProfileForProvider({name: 'Institution X', crypto: cryptoIssuer, config});
     // console.log(`did: ${issuerProfile.id} provider.private = ${cryptoIssuer.private.toString('hex')}`);
-    // const year_plus_1_date = new Date();
-    // year_plus_1_date.setFullYear(year_plus_1_date.getFullYear() + 1);
-    // const year_plus_1 = year_plus_1_date.getTime();
+    const year_plus_1_date = new Date();
+    year_plus_1_date.setFullYear(year_plus_1_date.getFullYear() + 1);
+    const year_plus_1 = year_plus_1_date.getTime();
 
 
     // Write Claims for Owner 1
@@ -79,10 +88,22 @@ const api = require('./src/api');
     // Create a profile for an Asset representing Shares in Company Y
     const assetProfile = await api.createProfileForAsset({
         config,
-        regulationApps: [{ id: 'store-id:did:ownera-provider:c291be0d-e417-4059-b2de-484a3dad3635regd-no-seller'}],
+        regulationApps: [],
         name: 'Company Y',
         type: 'Company',
         issuerId:'issuerId',
+    });
+    console.log('-------------');
+    console.log('assetProfile ', assetProfile);
+    console.log('-------------');
+
+    // Add a sale to asset
+    await api.addSaleToAsset({
+        assetId: assetProfile.id,
+        start: 1600000000000,
+        end: year_plus_1,
+        price: 10,
+        quantity: 1000000,
     });
 
     // Write KYA for asset
@@ -110,15 +131,15 @@ const api = require('./src/api');
     // await api.balanceToken(assetProfile.id, crypto3.public);
 
     // Transfer tokens from Owner 1 to Owner 2 - should fail
-    await api.transferTokens({
-        assetId: assetProfile.id,
-        sourcePrivateKey: crypto2.private,
-        sourcePublicKey: crypto2.public,
-        sellerId: owner2.id,
-        recipientPublicKey: crypto1.public,
-        buyerId: owner1.id,
-        quantity: 50,
-    }).catch(e => {});
+    // await api.transferTokens({
+    //     assetId: assetProfile.id,
+    //     sourcePrivateKey: crypto2.private,
+    //     sourcePublicKey: crypto2.public,
+    //     sellerId: owner2.id,
+    //     recipientPublicKey: crypto1.public,
+    //     buyerId: owner1.id,
+    //     quantity: 50,
+    // }).catch(e => {});
 
     // Owner 1 Balance
     // await api.balanceToken(assetProfile.id, crypto1.public);
@@ -128,15 +149,15 @@ const api = require('./src/api');
     // await api.balanceToken(assetProfile.id, crypto3.public);
 
     // Transfer tokens from Owner 2 to Owner 3
-    await api.transferTokens({
-        assetId: assetProfile.id,
-        sourcePrivateKey: crypto2.private,
-        sourcePublicKey: crypto2.public,
-        sellerId: owner2.id,
-        recipientPublicKey: crypto3.public,
-        buyerId: owner3.id,
-        quantity: 50,
-    }).catch(e => {});
+    // await api.transferTokens({
+    //     assetId: assetProfile.id,
+    //     sourcePrivateKey: crypto2.private,
+    //     sourcePublicKey: crypto2.public,
+    //     sellerId: owner2.id,
+    //     recipientPublicKey: crypto3.public,
+    //     buyerId: owner3.id,
+    //     quantity: 50,
+    // }).catch(e => {});
 
     // Owner 1 Balance
     // await api.balanceToken(assetProfile.id, crypto1.public);

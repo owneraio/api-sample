@@ -63,6 +63,14 @@ async function createProfileForAsset({ issuerId, regulationApps, name, type, con
     });
 }
 
+async function addSaleToAsset ({ assetId, start, end, price, quantity }) {
+    return restRequest({
+        type: 'post',
+        url: `${SERVER_BASE_URI}/finapi/profiles/asset/${assetId}/sale`,
+        data: { start, end, price, quantity },
+    });
+};
+
 async function updateProfileForAsset({ id, config, regulationApps, name }) {
     return restRequest({
         type: 'put',
@@ -269,6 +277,7 @@ module.exports = {
     createOwnerProfile,
     // createProfileForProvider,
     createProfileForAsset,
+    addSaleToAsset,
     updateProfileForAsset,
     // readProfile,
     // uploadDocument,
