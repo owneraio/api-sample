@@ -217,18 +217,18 @@ async function issueToken({ assetId, recipientPublicKey, quantity, buyerId }) {
 //     });
 // }
 
-async function transferTokens({ assetId, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity, sellerId, buyerId }) {
+async function transferTokens({ asset, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity, seller, buyer }) {
     const nonce = crypto.randomBytes(24);
-    const signature = signMessage(sourcePrivateKey, [nonce, 'transfer', recipientPublicKey, assetId, '0x' + quantity.toString(16)]);
+    const signature = signMessage(sourcePrivateKey, [nonce, 'transfer', recipientPublicKey, asset, '0x' + quantity.toString(16)]);
 
     return restRequest({
-        type: 'put',
-        url: `${SERVER_BASE_URI}/api/tokens/transfer`,
+        type: 'post',
+        url: `${SERVER_BASE_URI}/finapi/tokens/transfer`,
         data: {
-            asset: assetId,
-            seller: sellerId,
+            asset,
+            seller,
             sourcePublicKey: sourcePublicKey.toString('hex'),
-            buyer: buyerId,
+            buyer,
             recipientPublicKey: recipientPublicKey.toString('hex'),
             quantity,
             settlementRef: '',

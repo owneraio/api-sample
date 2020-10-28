@@ -131,15 +131,19 @@ const api = require('./src/api');
     // await api.balanceToken(assetProfile.id, crypto3.public);
 
     // Transfer tokens from Owner 1 to Owner 2 - should fail
-    // await api.transferTokens({
-    //     assetId: assetProfile.id,
-    //     sourcePrivateKey: crypto2.private,
-    //     sourcePublicKey: crypto2.public,
-    //     sellerId: owner2.id,
-    //     recipientPublicKey: crypto1.public,
-    //     buyerId: owner1.id,
-    //     quantity: 50,
-    // }).catch(e => {});
+    try {
+        await api.transferTokens({
+            asset: assetProfile.id,
+            sourcePrivateKey: crypto2.private,
+            sourcePublicKey: crypto2.public,
+            seller: owner2.id,
+            recipientPublicKey: crypto1.public,
+            buyer: owner1.id,
+            quantity: 50,
+        });
+    } catch (e) {
+        console.log(e);
+    }
 
     // Owner 1 Balance
     // await api.balanceToken(assetProfile.id, crypto1.public);
@@ -149,15 +153,15 @@ const api = require('./src/api');
     // await api.balanceToken(assetProfile.id, crypto3.public);
 
     // Transfer tokens from Owner 2 to Owner 3
-    // await api.transferTokens({
-    //     assetId: assetProfile.id,
-    //     sourcePrivateKey: crypto2.private,
-    //     sourcePublicKey: crypto2.public,
-    //     sellerId: owner2.id,
-    //     recipientPublicKey: crypto3.public,
-    //     buyerId: owner3.id,
-    //     quantity: 50,
-    // }).catch(e => {});
+    await api.transferTokens({
+        asset: assetProfile.id,
+        sourcePrivateKey: crypto2.private,
+        sourcePublicKey: crypto2.public,
+        seller: owner2.id,
+        recipientPublicKey: crypto3.public,
+        buyer: owner3.id,
+        quantity: 50,
+    }).catch(e => {});
 
     // Owner 1 Balance
     // await api.balanceToken(assetProfile.id, crypto1.public);
