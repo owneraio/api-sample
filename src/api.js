@@ -193,7 +193,7 @@ async function issueToken({ assetId, recipientPublicKey, quantity, buyerId }) {
             asset: assetId,
             buyer: buyerId,
             recipientPublicKey: recipientPublicKey.toString('hex'),
-            quantity,
+            quantity: quantity.toString(),
             settlementRef: '',
         }
     });
@@ -223,7 +223,7 @@ async function transferTokens({ asset, sourcePrivateKey, sourcePublicKey, recipi
             sourcePublicKey: sourcePublicKey.toString('hex'),
             buyer,
             recipientPublicKey: recipientPublicKey.toString('hex'),
-            quantity,
+            quantity: quantity.toString(),
             settlementRef: '',
             nonce: nonce.toString('hex'),
             signature,
