@@ -141,25 +141,14 @@ async function updateProfileForAsset({ id, config, regulationApps, name }) {
 //     fs.writeFileSync(`/tmp/${name}`, data);
 // }
 
-// async function createClaim({type, issuerId, issuanceDate, expirationDate, subjectId, data, crypto}) {
-//     const signature = signMessage(crypto.private, [
-//         'CreateClaim',
-//         ...orderValuesForHash({
-//             data,
-//             expirationDate,
-//             issuanceDate,
-//             issuerId,
-//             subjectId,
-//             type,
-//         })
-//     ]);
-//
-//     return restRequest({
-//         type: 'post',
-//         url: `${SERVER_BASE_URI}/api/claims`,
-//         data: {type, issuerId, issuanceDate, expirationDate, subjectId, data, signature}
-//     });
-// }
+async function createClaim({ type, issuanceDate, expirationDate, subjectId, data }) {
+    return restRequest({
+        type: 'post',
+        url: `${SERVER_BASE_URI}/finapi/profiles/${subjectId}/certificates`,
+        data: { type, issuanceDate, expirationDate, data },
+    });
+}
+
 //
 // async function updateClaim({claimId, issuanceDate, expirationDate, data, crypto}) {
 //     const signature = signMessage(crypto.private, [
@@ -226,7 +215,7 @@ async function transferTokens({ asset, sourcePrivateKey, sourcePublicKey, recipi
     const signature = signMessage(sourcePrivateKey, [nonce, 'transfer', recipientPublicKey, asset, '0x' + quantity.toString(16)]);
 
     return restRequest({
-        type: 'post',
+        type: 'put',
         url: `${SERVER_BASE_URI}/finapi/tokens/transfer`,
         data: {
             asset,
@@ -288,7 +277,7 @@ module.exports = {
     // updateDocument,
     // listDocuments,
     // downloadDocument,
-    // createClaim,
+    createClaim,
     // updateClaim,
     // readClaim,
     // readClaims,

@@ -1,5 +1,7 @@
 const api = require('./src/api');
 
+const wait = (t) => new Promise((res) => setTimeout(res, t));
+
 (async function () {
     const config = JSON.stringify({});
     // create owner1
@@ -29,66 +31,59 @@ const api = require('./src/api');
     // console.log(`did: ${issuerProfile.id} provider.private = ${cryptoIssuer.private.toString('hex')}`);
     const year_plus_1_date = new Date();
     year_plus_1_date.setFullYear(year_plus_1_date.getFullYear() + 1);
-    const year_plus_1 = year_plus_1_date.getTime();
+    const year_plus_1 = Math.floor(year_plus_1_date.getTime() / 1000);
 
 
     // Write Claims for Owner 1
-    // await api.createClaim({
-    //     type: "KYC",
-    //     issuerId: issuerProfile.id,
-    //     issuanceDate: new Date().getTime(),
-    //     expirationDate: year_plus_1,
-    //     subjectId: owner1.id,
-    //     data:JSON.stringify({"country": "usa"}),
-    //     crypto: cryptoIssuer
-    // });
-    //
-    // // Write Claims for Owner 2
-    // await api.createClaim({
-    //     type: "KYC/AML",
-    //     issuerId: issuerProfile.id,
-    //     issuanceDate: new Date().getTime(),
-    //     expirationDate: year_plus_1,
-    //     subjectId: owner2.id,
-    //     data: JSON.stringify({"country": "usa"}),
-    //     crypto: cryptoIssuer
-    // });
-    //
-    // // Write Claims for Owner 3
-    // await api.createClaim({
-    //     type: "KYC/AML",
-    //     issuerId: issuerProfile.id,
-    //     issuanceDate: new Date().getTime(),
-    //     expirationDate: year_plus_1,
-    //     subjectId: owner3.id,
-    //     data: JSON.stringify({"country": "usa"}),
-    //     crypto: cryptoIssuer
-    // });
-    //
-    // await api.createClaim({
-    //     type: "Accreditation",
-    //     issuerId: issuerProfile.id,
-    //     issuanceDate: new Date().getTime(),
-    //     expirationDate: year_plus_1,
-    //     subjectId: owner3.id,
-    //     data:JSON.stringify( {"country": "usa"}),
-    //     crypto: cryptoIssuer
-    // });
-    //
-    // await api.createClaim({
-    //     type: "Accreditation",
-    //     issuerId: issuerProfile.id,
-    //     issuanceDate: new Date().getTime(),
-    //     expirationDate: year_plus_1,
-    //     subjectId: owner2.id,
-    //     data: JSON.stringify({"country": "usa"}),
-    //     crypto: cryptoIssuer
-    // });
+    await api.createClaim({
+        type: "KYC",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: owner1.id,
+        data:JSON.stringify({"country": "usa"}),
+    });
+
+    // Write Claims for Owner 2
+    await api.createClaim({
+        type: "KYC/AML",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: owner2.id,
+        data: JSON.stringify({"country": "usa"}),
+    });
+
+    // Write Claims for Owner 3
+    await api.createClaim({
+        type: "KYC/AML",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: owner3.id,
+        data: JSON.stringify({"country": "usa"}),
+    });
+
+    await api.createClaim({
+        type: "Accreditation",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: owner3.id,
+        data:JSON.stringify( {"country": "usa"}),
+    });
+
+    await api.createClaim({
+        type: "Accreditation",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: owner2.id,
+        data: JSON.stringify({"country": "usa"}),
+    });
 
     // Create a profile for an Asset representing Shares in Company Y
     const assetProfile = await api.createProfileForAsset({
         config,
-        regulationApps: [],
+        regulationApps: [
+            // { id: 'store-id:bank-us:100:7928d6a5-0a85-4425-a531-b0eb452e6aa6RegX' },
+            // { id: 'store-id:bank-us:100:7928d6a5-0a85-4425-a531-b0eb452e6aa6RegD' },
+        ],
         name: 'Company Y',
         type: 'Company',
         issuerId:'issuerId',
@@ -100,7 +95,7 @@ const api = require('./src/api');
     // Add a sale to asset
     await api.addSaleToAsset({
         assetId: assetProfile.id,
-        start: 1600000000000,
+        start: 1600000000,
         end: year_plus_1,
         price: 10,
         quantity: 1000000,
@@ -124,54 +119,73 @@ const api = require('./src/api');
     await api.issueToken({ assetId: assetProfile.id, recipientPublicKey: crypto2.public, quantity: 150, buyerId: owner2.id}).catch(console.log);
 
     // Owner 1 Balance
-    // await api.balanceToken(assetProfile.id, crypto1.public);
+    let b1 = await api.balanceToken(assetProfile.id, crypto1.public);
     // Owner 2 Balance
-    // await api.balanceToken(assetProfile.id, crypto2.public);
+    let b2 = await api.balanceToken(assetProfile.id, crypto2.public);
     // Owner 3 Balance
-    // await api.balanceToken(assetProfile.id, crypto3.public);
+    let b3 = await api.balanceToken(assetProfile.id, crypto3.public);
 
-    // Transfer tokens from Owner 1 to Owner 2 - should fail
+    console.log('------ balances -------');
+    console.log('owner1', b1);
+    console.log('owner2', b2);
+    console.log('owner3', b3);
+    console.log('-----------------------');
+
+    // Transfer tokens from Owner 3 to Owner 1 - should fail
     try {
         await api.transferTokens({
             asset: assetProfile.id,
-            sourcePrivateKey: crypto2.private,
-            sourcePublicKey: crypto2.public,
-            seller: owner2.id,
+            sourcePrivateKey: crypto3.private,
+            sourcePublicKey: crypto3.public,
+            seller: owner3.id,
             recipientPublicKey: crypto1.public,
             buyer: owner1.id,
             quantity: 50,
         });
     } catch (e) {
-        console.log(e);
+        console.error('fails due to the fact owner3 balance is 0 ', e);
     }
 
-    // Owner 1 Balance
-    const b1 = await api.balanceToken(assetProfile.id, crypto1.public);
-    console.log('-------------');
-    console.log(b1);
-    console.log('-------------');
-    // Owner 2 Balance
-    // await api.balanceToken(assetProfile.id, crypto2.public);
-    // Owner 3 Balance
-    // await api.balanceToken(assetProfile.id, crypto3.public);
+    await wait(1000);
 
-    // Transfer tokens from Owner 2 to Owner 3
+    // Owner 1 Balance
+    b1 = await api.balanceToken(assetProfile.id, crypto1.public);
+    // Owner 2 Balance
+    b2 = await api.balanceToken(assetProfile.id, crypto2.public);
+    // Owner 3 Balance
+    b3 = await api.balanceToken(assetProfile.id, crypto3.public);
+
+    console.log('------ balances -------');
+    console.log('owner1', b1);
+    console.log('owner2', b2);
+    console.log('owner3', b3);
+    console.log('-----------------------');
+
+    // Transfer tokens from Owner 1 to Owner 2
     await api.transferTokens({
         asset: assetProfile.id,
-        sourcePrivateKey: crypto2.private,
-        sourcePublicKey: crypto2.public,
-        seller: owner2.id,
-        recipientPublicKey: crypto3.public,
-        buyer: owner3.id,
+        sourcePrivateKey: crypto1.private,
+        sourcePublicKey: crypto1.public,
+        seller: owner1.id,
+        recipientPublicKey: crypto2.public,
+        buyer: owner2.id,
         quantity: 50,
     }).catch(e => {});
 
+    await wait(1000);
+
     // Owner 1 Balance
-    // await api.balanceToken(assetProfile.id, crypto1.public);
+     b1 =  await api.balanceToken(assetProfile.id, crypto1.public);
     // Owner 2 Balance
-    // await api.balanceToken(assetProfile.id, crypto2.public);
+     b2 =  await api.balanceToken(assetProfile.id, crypto2.public);
     // Owner 3 Balance
-    // await api.balanceToken(assetProfile.id, crypto3.public);
+     b3 =  await api.balanceToken(assetProfile.id, crypto3.public);
+
+    console.log('------ balances -------');
+    console.log('owner1', b1);
+    console.log('owner2', b2);
+    console.log('owner3', b3);
+    console.log('-----------------------');
 
     console.log('Done.');
     process.exit();
