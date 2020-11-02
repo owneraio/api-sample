@@ -3,6 +3,7 @@ require('dotenv').config();
 const {SERVER_BASE_URI} = require('./helpers/configuration');
 const secp256k1 = require('secp256k1');
 const {restRequest} = require('./helpers/restRequest');
+const {docRequest} = require('./helpers/docRequest');
 const crypto = require('crypto');
 const fs = require('fs');
 const {orderValuesForHash} = require('./helpers/utils');
@@ -32,22 +33,6 @@ async function createOwnerProfile(privateKey, publicKey) {
         }
     });
 }
-
-// async function createProfileForProvider({name, crypto}) {
-//     const signature = signMessage(crypto.private, ['createProviderProfile', ...orderValuesForHash({
-//         name,
-//         publickKey: crypto.public
-//     })]);
-//     return restRequest({
-//         type: 'post',
-//         url: `${SERVER_BASE_URI}/api/profiles/provider`,
-//         data: {
-//             name,
-//             publicKey: crypto.public.toString('hex'),
-//             signature,
-//         }
-//     });
-// }
 
 async function createProfileForAsset({ issuerId, regulationApps, name, type, config }) {
     return restRequest({
@@ -83,64 +68,6 @@ async function updateProfileForAsset({ id, config, regulationApps, name }) {
     });
 }
 
-// async function readProfile(id) {
-//     return restRequest({
-//         type: 'get',
-//         url: `${SERVER_BASE_URI}/api/profiles/${id}`,
-//     });
-// }
-
-// async function uploadDocument({claimId, filePath, crypto}) {
-//     const signature = signMessage(crypto.private, ['CreateDocument', ...orderValuesForHash({
-//         claimId,
-//         file: fs.readFileSync(filePath)
-//     })]);
-//
-//     return docRequest({
-//         type: 'post',
-//         url: `${SERVER_BASE_URI}/api/docs/${claimId}`,
-//         formData: {
-//             file: fs.createReadStream(filePath),
-//             signature
-//         }
-//     });
-// }
-
-// async function updateDocument({docId, claimId, filePath, crypto}) {
-//     const signature = signMessage(crypto.private, ['UpdateDocument', ...orderValuesForHash({
-//         claimId,
-//         file: fs.readFileSync(filePath),
-//         id: docId
-//     })]);
-//
-//     return docRequest({
-//         type: 'put',
-//         url: `${SERVER_BASE_URI}/api/docs/${claimId}/${docId}`,
-//
-//         formData: {
-//             file: fs.createReadStream(filePath),
-//             signature
-//         }
-//     });
-// }
-
-// async function listDocuments(claimId) {
-//     return restRequest({
-//         type: 'get',
-//         url: `${SERVER_BASE_URI}/api/docs/${claimId}`,
-//     });
-// }
-
-// async function downloadDocument(claimId, fileId, name) {
-//     const data = await restRequest({
-//         type: 'get',
-//         url: `${SERVER_BASE_URI}/api/docs/${claimId}/${fileId}`,
-//     });
-//
-//     console.log('doc', data)
-//     fs.writeFileSync(`/tmp/${name}`, data);
-// }
-
 async function createClaim({ type, issuanceDate, expirationDate, subjectId, data }) {
     return restRequest({
         type: 'post',
@@ -149,39 +76,13 @@ async function createClaim({ type, issuanceDate, expirationDate, subjectId, data
     });
 }
 
-//
-// async function updateClaim({claimId, issuanceDate, expirationDate, data, crypto}) {
-//     const signature = signMessage(crypto.private, [
-//         'UpdateClaim',
-//         ...orderValuesForHash({
-//             data,
-//             expirationDate,
-//             claimId,
-//             issuanceDate
-//         })
-//     ]);
-//
-//     return restRequest({
-//         type: 'put',
-//         url: `${SERVER_BASE_URI}/api/claims/${claimId}`,
-//         data: {issuanceDate, expirationDate, data, signature}
-//     });
-// }
-//
-// async function readClaim(id) {
-//     return restRequest({
-//         type: 'get',
-//         url: `${SERVER_BASE_URI}/api/claims/${id}`,
-//     });
-// }
-//
-// async function readClaims(id) {
-//     return restRequest({
-//         type: 'get',
-//         url: `${SERVER_BASE_URI}/api/claims/profile/${id}`,
-//     });
-// }
-
+async function updateClaim({claimId, issuanceDate, expirationDate, data, profileId}) {
+    return restRequest({
+        type: 'put',
+        url: `${SERVER_BASE_URI}/finapi/profiles/${profileId}/certificates/${claimId}`,
+        data: {issuanceDate, expirationDate, data},
+    });
+}
 
 async function issueToken({ assetId, recipientPublicKey, quantity, buyerId }) {
     const nonce = crypto.randomBytes(24);
@@ -268,19 +169,11 @@ function signMessage(privKey, values) {
 module.exports = {
     createCrypto,
     createOwnerProfile,
-    // createProfileForProvider,
     createProfileForAsset,
     addSaleToAsset,
     updateProfileForAsset,
-    // readProfile,
-    // uploadDocument,
-    // updateDocument,
-    // listDocuments,
-    // downloadDocument,
     createClaim,
-    // updateClaim,
-    // readClaim,
-    // readClaims,
+    updateClaim,
     issueToken,
     balanceToken,
     transferTokens,
