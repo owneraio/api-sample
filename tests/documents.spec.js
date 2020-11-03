@@ -12,25 +12,21 @@ describe(`upload files`, () => {
         When      uploadDocument(claim.id, file)
         Then      the file will be attached to the claim
     `, async (done) => {
-        const {issuerProfile, profile, year_plus_1, crypto} = await getClaimConfiguration('node1');
+        const {profile, year_plus_1, crypto} = await getClaimConfiguration('node1');
         const type = 'KYC';
         const issuanceDate = new Date().getTime();
         const data = JSON.stringify({blabla: 1});
         const claim = await api.createClaim({
             type,
-            issuerId: issuerProfile.id,
             issuanceDate,
             expirationDate: year_plus_1,
             subjectId: profile.id,
             data,
-            crypto
         });
         const uploadResponse = await api.uploadDocument({
-            claimId: claim.id,
-            filePath: path.resolve(__dirname, 'test.txt'),
-            crypto,
-            mimetype: 'text',
-            name: 'test'
+            profileId: profile.id,
+            certificateId: claim.id,
+            file: path.resolve(__dirname, 'test.txt'),
         });
 
         const doc = JSON.parse(uploadResponse);
@@ -44,19 +40,17 @@ describe(`upload files`, () => {
         console.log('uploadDocument response ', doc);
         const documents = await api.listDocuments(claim.id);
         const updateDoc = await api.updateDocument({
+            profileId: profile.id,
             docId: doc.id,
-            claimId: claim.id,
-            filePath: path.resolve(__dirname, 'test.txt'),
-            crypto,
-            mimetype: 'text',
-            name: 'test'
+            certificateId: claim.id,
+            file: path.resolve(__dirname, 'test.txt'),
         });
 
         const file = documents[0];
 
         expect(file.id).toMatch(doc.id);
 
-        await api.downloadDocument(claim.id, file.id, file.name);
+        await api.getDocument({docUri: doc.uri, file: file.name});
         done();
     })
 });
