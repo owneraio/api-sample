@@ -1,4 +1,5 @@
 const api = require('./src/api');
+const path = require('path');
 
 const wait = (t) => new Promise((res) => setTimeout(res, t));
 
@@ -102,21 +103,30 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
     });
 
     // Write KYA for asset
-    // await api.createClaim({
-    //     type: "KYA",
-    //     issuerId: issuerProfile.id,
-    //     issuanceDate: new Date().getTime(),
-    //     expirationDate: year_plus_1,
-    //     subjectId: assetProfile.id,
-    //     data: JSON.stringify({"country": "usa", "kyc" : ["11111", "22222", "33333"], "aml": ["11111","22222", "33333"]}),
-    //     crypto: cryptoIssuer
-    // });
+    const assetCertificate = await api.createClaim({
+        type: "KYA",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: assetProfile.id,
+        data: JSON.stringify({"country": "usa", "kyc" : ["11111", "22222", "33333"], "aml": ["11111","22222", "33333"]}),
+    });
 
     // Primary Issuance for Owner 1 - issue token fail
     await api.issueToken({ assetId: assetProfile.id, recipientPublicKey: crypto1.public, quantity: 150, buyerId: owner1.id}).catch(console.log);
 
     // Primary Issuance for Owner 2 - issue token success
     await api.issueToken({ assetId: assetProfile.id, recipientPublicKey: crypto2.public, quantity: 150, buyerId: owner2.id}).catch(console.log);
+
+    // Add document to asset certificate
+    const uploadDocResponse = await api.uploadDocument({
+      profileId: assetProfile.id,
+      certificateId: assetCertificate.id,
+      file: path.resolve(__dirname, 'tests/test.txt'),
+    });
+
+    // Download document
+    const doc = JSON.parse(uploadDocResponse);
+    await api.getDocument({ docUri: doc.uri, filename: 'dl_test.txt' });
 
     // Owner 1 Balance
     let b1 = await api.balanceToken(assetProfile.id, crypto1.public);

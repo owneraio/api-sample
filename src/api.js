@@ -84,6 +84,40 @@ async function updateClaim({claimId, issuanceDate, expirationDate, data, profile
     });
 }
 
+async function uploadDocument({ profileId, certificateId, file }) {
+    const formData = {
+        file: fs.createReadStream(file),
+    };
+    return docRequest({
+        type: 'post',
+        url: `${SERVER_BASE_URI}/finapi/profiles/${profileId}/certificates/${certificateId}/docs`,
+        formData,
+    });
+}
+async function updateDocument({ profileId, certificateId, docId, file }) {
+    const formData = {
+        file: fs.createReadStream(file),
+    };
+    return docRequest({
+        type: 'put',
+        url: `${SERVER_BASE_URI}/finapi/profiles/${profileId}/certificates/${certificateId}/docs/${docId}`,
+        formData,
+    });
+}
+
+async function getDocument({ docUri, filename }) {
+    const data = await restRequest({
+        type: 'get',
+        url: `${SERVER_BASE_URI}/finapi/docs/${docUri}`,
+    });
+    try {
+        fs.writeFileSync(`/tmp/${filename}`, data);
+        console.log(`file downloaded: /tmp/${filename}`);
+    } catch (err) {
+        console.error(`Unable to get file with URI: ${docUri}`)
+    }
+}
+
 async function issueToken({ assetId, recipientPublicKey, quantity, buyerId }) {
     const nonce = crypto.randomBytes(24);
     return restRequest({
@@ -174,6 +208,9 @@ module.exports = {
     updateProfileForAsset,
     createClaim,
     updateClaim,
+    uploadDocument,
+    updateDocument,
+    getDocument,
     issueToken,
     balanceToken,
     transferTokens,
