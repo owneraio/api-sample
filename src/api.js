@@ -6,6 +6,8 @@ const {restRequest} = require('./helpers/restRequest');
 const {docRequest} = require('./helpers/docRequest');
 const crypto = require('crypto');
 const fs = require('fs');
+const {orderValuesForHash} = require('./helpers/utils');
+
 
 function createCrypto() {
     // generate privKey
@@ -24,177 +26,169 @@ async function createOwnerProfile(privateKey, publicKey) {
 
     return restRequest({
         type: 'post',
-        url: `${SERVER_BASE_URI}/api/profiles/owner`,
+        url: `${SERVER_BASE_URI}/finapi/profiles/owner`,
         data: {
-            "publicKey": publicKey.toString('hex'),
+            'publicKey': publicKey.toString('hex'),
             signature
         }
     });
 }
 
-async function createProfileForProvider(name) {
+async function createProfileForAsset({ issuerId, regulationApps, name, type, config }) {
     return restRequest({
         type: 'post',
-        url: `${SERVER_BASE_URI}/api/profiles/provider`,
+        url: `${SERVER_BASE_URI}/finapi/profiles/asset`,
         data: {
-            name
-        }
-    });
-}
-
-async function createProfileForAsset(config, regApps) {
-    return restRequest({
-        type: 'post',
-        url: `${SERVER_BASE_URI}/api/profiles/asset`,
-        data: {
+            name,
+            type,
+            regulationApps,
             config,
-            "regulationApps": regApps
+            issuerId
         }
     });
 }
 
-async function updateProfileForAsset(id, config) {
+async function addSaleToAsset ({ assetId, start, end, price, quantity }) {
+    return restRequest({
+        type: 'post',
+        url: `${SERVER_BASE_URI}/finapi/profiles/asset/${assetId}/sale`,
+        data: { start, end, price, quantity },
+    });
+};
+
+async function updateProfileForAsset({ id, config, regulationApps, name }) {
     return restRequest({
         type: 'put',
-        url: `${SERVER_BASE_URI}/api/profiles/${id}/asset`,
+        url: `${SERVER_BASE_URI}/finapi/profiles/asset/${id}`,
         data: {
-            config
+            name,
+            config,
+            regulationApps,
         }
     });
 }
 
-async function readProfile(id) {
+async function createClaim({ type, issuanceDate, expirationDate, subjectId, data }) {
     return restRequest({
-        type: 'get',
-        url: `${SERVER_BASE_URI}/api/profiles/${id}`,
+        type: 'post',
+        url: `${SERVER_BASE_URI}/finapi/profiles/${subjectId}/certificates`,
+        data: { type, issuanceDate, expirationDate, data },
     });
 }
 
-async function uploadDocument(claimId, file) {
+async function updateClaim({claimId, issuanceDate, expirationDate, data, profileId}) {
+    return restRequest({
+        type: 'put',
+        url: `${SERVER_BASE_URI}/finapi/profiles/${profileId}/certificates/${claimId}`,
+        data: {issuanceDate, expirationDate, data},
+    });
+}
+
+async function uploadDocument({ profileId, certificateId, file }) {
     const formData = {
         file: fs.createReadStream(file),
     };
-
     return docRequest({
         type: 'post',
-        url: `${SERVER_BASE_URI}/api/docs/${claimId}`,
-        formData
+        url: `${SERVER_BASE_URI}/finapi/profiles/${profileId}/certificates/${certificateId}/docs`,
+        formData,
     });
 }
-
-async function updateDocument(docId, claimId, file) {
+async function updateDocument({ profileId, certificateId, docId, file }) {
     const formData = {
         file: fs.createReadStream(file),
     };
     return docRequest({
         type: 'put',
-        url: `${SERVER_BASE_URI}/api/docs/${claimId}/${docId}`,
-        formData
+        url: `${SERVER_BASE_URI}/finapi/profiles/${profileId}/certificates/${certificateId}/docs/${docId}`,
+        formData,
     });
 }
 
-
-async function listDocuments(claimId) {
-    return restRequest({
-        type: 'get',
-        url: `${SERVER_BASE_URI}/api/docs/${claimId}`,
-    });
-}
-
-async function downloadDocument(claimId, fileId, name) {
+async function getDocument({ docUri, filename }) {
     const data = await restRequest({
         type: 'get',
-        url: `${SERVER_BASE_URI}/api/docs/${claimId}/${fileId}`,
+        url: `${SERVER_BASE_URI}/finapi/docs/${docUri}`,
     });
-
-    fs.writeFileSync(`/tmp/${name}`, data);
+    try {
+        fs.writeFileSync(`/tmp/${filename}`, data);
+        console.log(`file downloaded: /tmp/${filename}`);
+    } catch (err) {
+        console.error(`Unable to get file with URI: ${docUri}`)
+    }
 }
 
-async function createClaim(type, issuerId, issuanceDate, expirationDate, subjectId, data) {
-    const claim = {
-        type,
-        issuerId,
-        issuanceDate,
-        expirationDate,
-        subjectId,
-        data
-    };
-
+async function issueToken({ assetId, recipientPublicKey, quantity, buyerId }) {
+    const nonce = crypto.randomBytes(24);
     return restRequest({
         type: 'post',
-        url: `${SERVER_BASE_URI}/api/claims`,
-        data: claim
-    });
-}
-
-async function updateClaim(id, issuanceDate, expirationDate, data) {
-    const claim = {
-        issuanceDate: issuanceDate,
-        expirationDate: expirationDate,
-        data: data
-    };
-
-    return restRequest({
-        type: 'put',
-        url: `${SERVER_BASE_URI}/api/claims/${id}`,
-        data: claim
-    });
-}
-
-async function readClaim(id) {
-    restRequest({
-        type: 'get',
-        url: `${SERVER_BASE_URI}/api/claims/${id}`,
-    });
-}
-
-
-async function issueToken(assetId, recipientPublicKey, quantity) {
-    return restRequest({
-        type: 'post',
-        url: `${SERVER_BASE_URI}/api/tokens/${assetId}`,
+        url: `${SERVER_BASE_URI}/finapi/tokens/issue`,
         data: {
-            "recipientPublicKey": recipientPublicKey.toString('hex'),
-            quantity
+            nonce: nonce.toString('hex'),
+            asset: assetId,
+            buyer: buyerId,
+            recipientPublicKey: recipientPublicKey.toString('hex'),
+            quantity: quantity.toString(),
+            settlementRef: '',
         }
     });
 }
 
-async function balanceToken(assetId, recipientPublicKey) {
+async function balanceToken(assetId, sourcePublicKey) {
     return restRequest({
-        type: 'get',
-        url: `${SERVER_BASE_URI}/api/tokens/${recipientPublicKey.toString('hex')}/${assetId}`,
+        type: 'post',
+        url: `${SERVER_BASE_URI}/finapi/tokens/balance`,
+        data: {
+            asset: assetId,
+            sourcePublicKey: sourcePublicKey.toString('hex'),
+        },
     });
 }
 
-async function listTokens(recipientPublicKey) {
-    return restRequest({
-        type: 'get',
-        url: `${SERVER_BASE_URI}/api/tokens/${recipientPublicKey.toString('hex')}`,
-    });
-}
-
-async function transferTokens(assetId, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity) {
+async function transferTokens({ asset, sourcePrivateKey, sourcePublicKey, recipientPublicKey, quantity, seller, buyer }) {
     const nonce = crypto.randomBytes(24);
-    const signature = signMessage(sourcePrivateKey, [nonce, "transfer", recipientPublicKey, assetId, '0x' + quantity.toString(16)]);
+    const signature = signMessage(sourcePrivateKey, [nonce, 'transfer', recipientPublicKey, asset, '0x' + quantity.toString(16)]);
 
     return restRequest({
         type: 'put',
-        url: `${SERVER_BASE_URI}/api/tokens/${assetId}/transfer`,
+        url: `${SERVER_BASE_URI}/finapi/tokens/transfer`,
         data: {
-            "sourcePublicKey": sourcePublicKey.toString('hex'),
-            "recipientPublicKey": recipientPublicKey.toString('hex'),
-            "quantity": quantity,
-            "nonce": nonce.toString('hex'),
+            asset,
+            seller,
+            sourcePublicKey: sourcePublicKey.toString('hex'),
+            buyer,
+            recipientPublicKey: recipientPublicKey.toString('hex'),
+            quantity: quantity.toString(),
+            settlementRef: '',
+            nonce: nonce.toString('hex'),
             signature,
         }
     });
 }
 
-function signMessage(privKey, values, recovery) {
-    var sh3 = crypto.createHash("sha3-256");
+async function redeemTokens({ assetId, sourcePrivateKey, sourcePublicKey, quantity, sellerId }) {
+    const nonce = crypto.randomBytes(24);
+    const signature = signMessage(sourcePrivateKey, [nonce, 'redeem', assetId, '0x' + quantity.toString(16)]);
+
+    return restRequest({
+        type: 'put',
+        url: `${SERVER_BASE_URI}/api/tokens/transfer`,
+        data: {
+            asset: assetId,
+            seller: sellerId,
+            sourcePublicKey: sourcePublicKey.toString('hex'),
+            quantity,
+            nonce: nonce.toString('hex'),
+            signature,
+        }
+    });
+}
+
+function signMessage(privKey, values) {
+    const sh3 = crypto.createHash('sha3-256');
 
     values.forEach((v) => {
+        // console.log('value to hash', v);
         sh3.update(v);
     });
 
@@ -202,31 +196,23 @@ function signMessage(privKey, values, recovery) {
 
     // sign the message
     const sigObj = secp256k1.sign(msg, privKey);
-    if (recovery) {
-        const sigObjR = Buffer.concat([sigObj.signature, Buffer.from(new Uint8Array([sigObj.recovery]))]);
-        return sigObjR.toString('hex');
-    } else {
-        return sigObj.signature.toString('hex');
-    }
+    return sigObj.signature.toString('hex');
 }
 
 
 module.exports = {
     createCrypto,
     createOwnerProfile,
-    createProfileForProvider,
     createProfileForAsset,
+    addSaleToAsset,
     updateProfileForAsset,
-    readProfile,
-    uploadDocument,
-    updateDocument,
-    listDocuments,
-    downloadDocument,
     createClaim,
     updateClaim,
-    readClaim,
+    uploadDocument,
+    updateDocument,
+    getDocument,
     issueToken,
     balanceToken,
-    listTokens,
-    transferTokens
+    transferTokens,
+    redeemTokens,
 }
