@@ -121,7 +121,7 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
     const uploadDocResponse = await api.uploadDocument({
       profileId: assetProfile.id,
       certificateId: assetCertificate.id,
-      file: path.resolve(__dirname, 'tests/test.txt'),
+      file: path.resolve(__dirname, 'test.txt'),
     });
 
     // Download document
