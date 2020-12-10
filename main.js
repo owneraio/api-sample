@@ -5,7 +5,7 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
 
 (async function () {
     const config = JSON.stringify({});
-    // create owner1
+    // Creating Owner profile 1
     const crypto1 = api.createCrypto();
     const owner1 = await api.createOwnerProfile(crypto1.private, crypto1.public);
     console.log('-------------');
@@ -26,10 +26,16 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
     console.log('owner3 ', owner3);
     console.log('-------------');
 
-    // Creating a Provider for KYC service
-    // const cryptoIssuer = api.createCrypto();
-    // const issuerProfile = await api.createProfileForProvider({name: 'Institution X', crypto: cryptoIssuer, config});
-    // console.log(`did: ${issuerProfile.id} provider.private = ${cryptoIssuer.private.toString('hex')}`);
+
+
+    // Creating Asset Issuer profile
+    const cryptoIssuer = api.createCrypto();
+    const issuer = await api.createOwnerProfile(cryptoIssuer.private, cryptoIssuer.public);
+    console.log('-------------');
+    console.log('issuer ', issuer);
+    console.log('-------------');
+
+
     const year_plus_1_date = new Date();
     year_plus_1_date.setFullYear(year_plus_1_date.getFullYear() + 1);
     const year_plus_1 = Math.floor(year_plus_1_date.getTime() / 1000);
@@ -37,7 +43,7 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
 
     // Write Claims for Owner 1
     await api.createClaim({
-        type: "KYC",
+        type: "KYC/AML",
         issuanceDate: Math.floor(Date.now() / 1000),
         expirationDate: year_plus_1,
         subjectId: owner1.id,
@@ -87,7 +93,7 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
         ],
         name: 'Company Y',
         type: 'Company',
-        issuerId:'issuerId',
+        issuerId: issuer.id,
     });
     console.log('-------------');
     console.log('assetProfile ', assetProfile);
@@ -105,7 +111,7 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
     console.log('asset sale ', sale);
     console.log('-------------');
 
-    // Write KYA for asset
+    // Write KYA (Know Your Asset) for asset
     const assetCertificate = await api.createClaim({
         type: "KYA",
         issuanceDate: Math.floor(Date.now() / 1000),
@@ -125,26 +131,27 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
             { type: 'link', name: 'Website', value: 'company-Y-asset.com' },
         ]}),
     });
+
+    // Add document to asset KYA certificate
+    const uploadDocResponse = await api.uploadDocument({
+        profileId: assetProfile.id,
+        certificateId: assetCertificate.id,
+        file: path.resolve(__dirname, 'test.txt'),
+    });
     console.log('-------------');
     console.log('assetCertificate ', assetCertificate);
     console.log('-------------');
 
-    // Primary Issuance for Owner 1 - issue token fail
+    // Primary Issuance for Owner 1 - issue token fail (if `RegD` reg-app is associated with asset as user is not accredited)
     await api.issueToken({ assetId: assetProfile.id, recipientPublicKey: crypto1.public, quantity: 150, buyerId: owner1.id}).catch(console.log);
 
     // Primary Issuance for Owner 2 - issue token success
     await api.issueToken({ assetId: assetProfile.id, recipientPublicKey: crypto2.public, quantity: 150, buyerId: owner2.id}).catch(console.log);
 
-    // Add document to asset certificate
-    const uploadDocResponse = await api.uploadDocument({
-      profileId: assetProfile.id,
-      certificateId: assetCertificate.id,
-      file: path.resolve(__dirname, 'test.txt'),
-    });
 
     // Download document
     const doc = JSON.parse(uploadDocResponse);
-    await api.getDocument({ docUri: doc.uri, filename: 'dl_test.txt' });
+    await api.getDocument({ docUri: doc.refs[0].uri, filename: 'dl_test.txt' });
 
     // Owner 1 Balance
     let b1 = await api.balanceToken(assetProfile.id, crypto1.public);
