@@ -94,13 +94,16 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
     console.log('-------------');
 
     // Add a sale to asset
-    await api.addSaleToAsset({
+    const sale = await api.addSaleToAsset({
         assetId: assetProfile.id,
         start: 1600000000,
         end: year_plus_1,
         price: 10,
         quantity: 1000000,
     });
+    console.log('-------------');
+    console.log('asset sale ', sale);
+    console.log('-------------');
 
     // Write KYA for asset
     const assetCertificate = await api.createClaim({
@@ -108,8 +111,23 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
         issuanceDate: Math.floor(Date.now() / 1000),
         expirationDate: year_plus_1,
         subjectId: assetProfile.id,
-        data: JSON.stringify({"country": "usa", "kyc" : ["11111", "22222", "33333"], "aml": ["11111","22222", "33333"]}),
+        data: JSON.stringify({ info: [
+            // Data contains a field 'info' is an array of objects with this structure:
+            // {
+            //   type: 'link' | 'text' | 'component';
+            //   name: string;
+            //   value: string | React.ReactNode;
+            // }
+            // Note that for value 'ReactNode' you need to pass type 'component'
+            { type: 'text', name: 'Issuer', value: 'Issuer name' },
+            { type: 'text', name: 'Headquarters', value: 'New York' },
+            { type: 'text', name: 'Industry', value: 'Finance' },
+            { type: 'link', name: 'Website', value: 'company-Y-asset.com' },
+        ]}),
     });
+    console.log('-------------');
+    console.log('assetCertificate ', assetCertificate);
+    console.log('-------------');
 
     // Primary Issuance for Owner 1 - issue token fail
     await api.issueToken({ assetId: assetProfile.id, recipientPublicKey: crypto1.public, quantity: 150, buyerId: owner1.id}).catch(console.log);
