@@ -40,6 +40,12 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
     year_plus_1_date.setFullYear(year_plus_1_date.getFullYear() + 1);
     const year_plus_1 = Math.floor(year_plus_1_date.getTime() / 1000);
 
+    // Certificates data sample
+    const user1Data = {email:'owner1@example.com',name:'Owner 1',created: Math.floor(Date.now() / 1000),updated:Math.floor(Date.now() / 1000),type:'company',role:'demo'};
+    const user2Data = {email:'owner2@example.com',name:'Owner 2',created: Math.floor(Date.now() / 1000),updated:Math.floor(Date.now() / 1000),type:'company',role:'demo'};
+    const user3Data = {email:'owner3@example.com',name:'Owner 3',created: Math.floor(Date.now() / 1000),updated:Math.floor(Date.now() / 1000),type:'company',role:'demo'};
+    const kycData = {name:'AML/KYC Compliance', country:'usa', info:[{type:'text',name: 'Certificate ID',value:'0WUA4BGZIM5'},{type:'text',name:'Country',value:'usa'}]}
+    const accreditationData = {name:'Certificate of Accreditation',country:'usa',info:[{type:'text',name:'Certificate ID',value:'O6GDGOILC9'},{type:'text',name:'Country',value:'usa'}]};
 
     // Write Claims for Owner 1
     await api.createClaim({
@@ -47,7 +53,15 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
         issuanceDate: Math.floor(Date.now() / 1000),
         expirationDate: year_plus_1,
         subjectId: owner1.id,
-        data:JSON.stringify({"country": "usa"}),
+        data:JSON.stringify(kycData),
+    });
+
+    await api.createClaim({
+        type: "ownerInfo",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: owner1.id,
+        data:JSON.stringify(user1Data),
     });
 
     // Write Claims for Owner 2
@@ -56,7 +70,23 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
         issuanceDate: Math.floor(Date.now() / 1000),
         expirationDate: year_plus_1,
         subjectId: owner2.id,
-        data: JSON.stringify({"country": "usa"}),
+        data: JSON.stringify(kycData),
+    });
+
+    await api.createClaim({
+        type: "Accreditation",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: owner2.id,
+        data: JSON.stringify(accreditationData),
+    });
+
+    await api.createClaim({
+        type: "ownerInfo",
+        issuanceDate: Math.floor(Date.now() / 1000),
+        expirationDate: year_plus_1,
+        subjectId: owner2.id,
+        data:JSON.stringify(user2Data),
     });
 
     // Write Claims for Owner 3
@@ -65,7 +95,7 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
         issuanceDate: Math.floor(Date.now() / 1000),
         expirationDate: year_plus_1,
         subjectId: owner3.id,
-        data: JSON.stringify({"country": "usa"}),
+        data: JSON.stringify(kycData),
     });
 
     await api.createClaim({
@@ -73,15 +103,15 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
         issuanceDate: Math.floor(Date.now() / 1000),
         expirationDate: year_plus_1,
         subjectId: owner3.id,
-        data:JSON.stringify( {"country": "usa"}),
+        data:JSON.stringify( accreditationData),
     });
 
     await api.createClaim({
-        type: "Accreditation",
+        type: "ownerInfo",
         issuanceDate: Math.floor(Date.now() / 1000),
         expirationDate: year_plus_1,
-        subjectId: owner2.id,
-        data: JSON.stringify({"country": "usa"}),
+        subjectId: owner3.id,
+        data:JSON.stringify(user3Data),
     });
 
     // Create a profile for an Asset representing Shares in Company Y
