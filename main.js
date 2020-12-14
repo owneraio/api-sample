@@ -41,9 +41,14 @@ const wait = (t) => new Promise((res) => setTimeout(res, t));
     const year_plus_1 = Math.floor(year_plus_1_date.getTime() / 1000);
 
     // Certificates data sample
-    const user1Data = {email:'owner1@example.com',name:'Owner 1',created: Math.floor(Date.now() / 1000),updated:Math.floor(Date.now() / 1000),type:'company',role:'demo'};
-    const user2Data = {email:'owner2@example.com',name:'Owner 2',created: Math.floor(Date.now() / 1000),updated:Math.floor(Date.now() / 1000),type:'company',role:'demo'};
-    const user3Data = {email:'owner3@example.com',name:'Owner 3',created: Math.floor(Date.now() / 1000),updated:Math.floor(Date.now() / 1000),type:'company',role:'demo'};
+    // Minimalist
+    const user1Data = {email:'owner1@example.com',name:'Owner 1', type:'company'};
+    const user2Data = {email:'owner2@example.com',name:'Owner 2', type:'company'};
+    const user3Data = {email:'owner3@example.com',name:'Owner 3', type:'company'};
+    // More detailed example - the `role` can be any string value (note that value `test` is filtered out)
+    // const user1Data = {email:'owner1@example.com',name:'Owner 1',created: Date.now(), updated: Date.now(), type:'company', role:'demo'};
+    // const user2Data = {email:'owner2@example.com',name:'Owner 2',created: Date.now(), updated: Date.now(), type:'company', role:'demo'};
+    // const user3Data = {email:'owner3@example.com',name:'Owner 3',created: Date.now(), updated: Date.now(), type:'company', role:'demo'};
     const kycData = {name:'AML/KYC Compliance', country:'usa', info:[{type:'text',name: 'Certificate ID',value:'0WUA4BGZIM5'},{type:'text',name:'Country',value:'usa'}]}
     const accreditationData = {name:'Certificate of Accreditation',country:'usa',info:[{type:'text',name:'Certificate ID',value:'O6GDGOILC9'},{type:'text',name:'Country',value:'usa'}]};
 
